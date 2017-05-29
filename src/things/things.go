@@ -18,6 +18,10 @@ type IDPair struct {
     Snd ID
 }
 
+func (this *IDPair) Equivalent(x IDPair) bool {
+    return (this.Fst == x.Fst && this.Snd == x.Snd) || (this.Fst == x.Snd && this.Snd == x.Fst)
+}
+
 type Thing struct {
     Id ID
     Path string
@@ -159,24 +163,16 @@ func GetComparison(db *sql.DB, a ID, b ID) int {
         return 0
     } else {
         if res.Left == int(a) {
-            if res.Balance < 0 {
-                return -1
-            } else if res.Balance > 0 {
-                return 1
-            }
+            return res.Balance
         }
         if res.Left == int(b) {
-            if res.Balance < 0 {
-                return 1
-            } else if res.Balance > 0 {
-                return -1
-            }
+            return -res.Balance
         }
         return 0;
     }
 }
 
-func SelectImages(db *sql.DB, ids things.IDPair) (things.Thing, things.Thing) {
+func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
     q := `
     SELECT id, path, desc, img_index, heat
     FROM images
@@ -189,7 +185,7 @@ func SelectImages(db *sql.DB, ids things.IDPair) (things.Thing, things.Thing) {
         log.Fatal(err)
     }
 
-    var img1,img2 things.Thing
+    var img1,img2 Thing
     rows.Next();
     err = rows.Scan(&img1.Id, &img1.Path, &img1.Desc, &img1.Index, &img1.Heat)
     if err != nil {
@@ -216,4 +212,64 @@ func SelectImages(db *sql.DB, ids things.IDPair) (things.Thing, things.Thing) {
     }
 
     return img1,img2
+}
+/* please note that this function is nondeterministic: it only returns a random element from the set
+   of elements which have the minimum heat */
+func GetColdestPair(db *sql.DB) IDPair {
+    var ids IDPair
+    query := `
+    SELECT left, right
+    FROM comparisons
+    WHERE heat = (SELECT heat FROM comparisons ORDER BY heat ASC LIMIT 1)
+    ORDER BY RANDOM()
+    LIMIT 1
+    `
+    err := db.QueryRow(query).Scan(&ids.Fst, &ids.Snd)
+    if err != nil {
+        // the comparisons table might be empty, let's try getting two random ID's
+        err := db.QueryRow("SELECT id FROM images ORDER BY RANDOM() LIMIT 1").Scan(&ids.Fst)
+        if err != nil {
+            log.Fatal(err)
+        }
+        err = db.QueryRow("SELECT id FROM images WHERE id != ? ORDER BY RANDOM() LIMIT 1", ids.Fst).Scan(&ids.Snd)
+        if err != nil {
+            log.Fatal(err)
+        }
+    }
+    fmt.Printf("coldest pair: %d, %d\n", ids.Fst, ids.Snd)
+    return ids
+}
+
+func GetRandomPair(db *sql.DB) IDPair {
+    var ids IDPair
+    err := db.QueryRow("SELECT id FROM images ORDER BY RANDOM() LIMIT 1").Scan(&ids.Fst)
+    if err != nil {
+        log.Fatal(err)
+    }
+    err = db.QueryRow("SELECT id FROM images WHERE id != ? ORDER BY RANDOM() LIMIT 1", ids.Fst).Scan(&ids.Snd)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("random pair: %d, %d\n", ids.Fst, ids.Snd)
+    return ids
+}
+
+func GetRandomIdAboveIndex(db *sql.DB, index int) ID {
+    var rv ID
+    err := db.QueryRow("SELECT id FROM images WHERE img_index > ? ORDER BY RANDOM() LIMIT 1", index).Scan(&rv)
+    if err != nil {
+        log.Fatal(err)
+    }
+    return rv
+}
+
+func GetRandomPairAboveIndex(db *sql.DB, index int) IDPair {
+    var ids IDPair
+    ids.Fst = GetRandomIdAboveIndex(db, index)
+    err := db.QueryRow("SELECT id FROM images WHERE id != ? AND img_index > ? ORDER BY RANDOM() LIMIT 1", ids.Fst, index).Scan(&ids.Snd)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("random pair: %d, %d\n", ids.Fst, ids.Snd)
+    return ids
 }

@@ -10,7 +10,8 @@ import (
     _ "github.com/mattn/go-sqlite3"
     "io/ioutil"
     "strconv"
-    "things")
+    "things"
+    scheduler "comparisonScheduler")
 
 func initDb() *sql.DB {
     db, err := sql.Open("sqlite3", "./CuterThing.db")
@@ -32,6 +33,15 @@ func initDb() *sql.DB {
         heat INT NOT NULL,
         FOREIGN KEY (left) REFERENCES images(id),
         FOREIGN KEY (right) REFERENCES images(id));
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY,
+        ip_addr TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS exposure (
+        user INT NOT NULL,
+        image INT NOT NULL,
+        heat INT NOT NULL,
+        FOREIGN KEY (user) REFERENCES users(id),
+        FOREIGN KEY (image) REFERENCES images(id));
     `
     _, err = db.Exec(statement)
     if err != nil {
@@ -44,7 +54,7 @@ func initDb() *sql.DB {
 }
 
 func loadImageStore(db *sql.DB) []things.Thing {
-    rows, err := db.Query("SELECT id, path, desc, img_index, heat FROM images ORDER BY img_index DESC")
+    rows, err := db.Query("SELECT id, path, desc, img_index, heat FROM images ORDER BY img_index ASC")
     if err != nil {
         log.Fatal(err)
     }
@@ -98,7 +108,6 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
             heat = heat + 1
             nrows = nrows + 1
         }
-        fmt.Printf("setting heat to %d\n", heat)
         if (nrows == 0) {
             query = "INSERT INTO comparisons(left, right, balance, heat) VALUES (%d, %d, %d, %d);"
             query = fmt.Sprintf(query, winner, loser, -1, heat)
@@ -126,12 +135,12 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
         page := `
         <html>
-        <head></head>
-        <body>
-        <ol>
-        %s
-        </ol>
-        </body>
+            <head></head>
+            <body>
+                <ol>
+                    %s
+                </ol>
+            </body>
         </html>
         `
 
@@ -147,14 +156,26 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
     }
 }
 
-func JudgeHandler(db *sql.DB, reqs chan things.IDPair) func(http.ResponseWriter, *http.Request) {
+func JudgeHandler(db *sql.DB, reqs chan things.IDPair, resps chan things.IDPair) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
-        fmt.Println("JudgeHandler is about to wait for some ID's")
-        ids := <-reqs
-        fmt.Println("JudgeHandler got what it was waiting for")
+        var ids things.IDPair
+RETRY:
+        select {
+        case some_ids := <-reqs:
+            ids = some_ids
+        default:
+            /*var some_ids things.IDPair
+            fmt.Println("JudgeHandler is responding with a -1 pair")
+            some_ids.Fst = -1
+            some_ids.Snd = -1
+            fmt.Println("-1 pair about to send")
+            resps <- some_ids
+            fmt.Println("-1 pair sent")*/
+            goto RETRY
+        }
         left, right := things.SelectImages(db, ids)
         page := `
-        <h1>Which of these things is cuter?</h1>
+        <h1>Which of these flags is better?</h1>
         <a href="/vote?winner=%d&loser=%d">
         %s
         </a>
@@ -163,16 +184,15 @@ func JudgeHandler(db *sql.DB, reqs chan things.IDPair) func(http.ResponseWriter,
         </a>
         `
         page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))
-        fmt.Println("About to write a page from JudgeHandler...")
         writer.Write([]byte(page))
     }
 }
 
 func ShutdownHandler(srv *http.Server, db *sql.DB) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
+        defer db.Close()
+        defer srv.Shutdown(req.Context())
         writer.Write([]byte("Shutting down the server."))
-        db.Close()
-        srv.Shutdown(req.Context())
     }
 }
 
@@ -198,178 +218,256 @@ func refreshImages(db *sql.DB) {
             log.Fatal(err)
         }
 
-        fmt.Println("Found an image...\n")
-        res, err := statement.Exec(file.Name(), max + 1)
+        _, err = statement.Exec(file.Name(), max + 1)
 
         tx.Commit()
         statement.Close()
 
         if err != nil {
             // duplicate image
-        } else {
-            tx, err := db.Begin()
-            if err != nil {
-                log.Fatal(err)
-            }
-            statement, err := tx.Prepare("INSERT INTO comparisons(left, right, balance, heat) VALUES (?, ?, 0, 0);")
-            if err != nil {
-                log.Fatal(err)
-            }
-            defer statement.Close()
-            id, _ := res.LastInsertId()
-            for i := 1; i < int(id); i = i + 1 {
-                _, err := statement.Exec(id, i)
-                if err != nil {
-                    fmt.Print("error adding a comparison on a new image")
-                    log.Fatal(err)
-                }
-                fmt.Println("Successfully added an empty comparison on a new image")
-            }
-            tx.Commit()
         }
     }
 }
 
 func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
-    var left, pivot, right things.ID
+    var left, pivot, right int
 
-    err := db.QueryRow("SELECT id FROM images ORDER BY img_index ASC LIMIT 1").Scan(&left)
+    err := db.QueryRow("SELECT img_index FROM images ORDER BY img_index ASC LIMIT 1").Scan(&left)
     if err != nil {
         log.Fatal(err)
     }
 
-    err = db.QueryRow("SELECT images.id FROM images ORDER BY img_index ASC LIMIT 1 OFFSET ((SELECT COUNT(*) FROM IMAGES) / 2)").Scan(&pivot)
+    err = db.QueryRow("SELECT images.img_index FROM images ORDER BY img_index ASC LIMIT 1 OFFSET ((SELECT COUNT(*) FROM IMAGES) / 2)").Scan(&pivot)
     if err != nil {
         log.Fatal(err)
     }
 
-    err = db.QueryRow("SELECT images.id FROM images ORDER BY img_index ASC LIMIT 1 OFFSET ((SELECT count(*) FROM images) - 1)").Scan(&right)
+    err = db.QueryRow("SELECT images.img_index FROM images ORDER BY img_index ASC LIMIT 1 OFFSET ((SELECT count(*) FROM images) - 1)").Scan(&right)
     if err != nil {
         log.Fatal(err)
     }
 
-    /**
-    * @return nil if abs(iRight - iLeft) < 1, the ID of the pivot element between them otherwise
-    */
-    selectPivot := func(iLeft int, iRight int) things.ID {
-        fmt.Println("Selecting a pivot.")
-        diff := iRight - iLeft
-        if diff == 0 {
-            return -1
-        } else {
-            var id things.ID
-            i := int((float64(iLeft) + float64(iRight) + 0.5) / 2.0)
-            err := db.QueryRow("SELECT id FROM images WHERE img_index = ?", i).Scan(&id)
+    var quickSort func(int, int, chan bool, chan bool)
+
+    // iLeft = img_index of the left-hand boundary (inclusive)
+    // iRight = img_index of the right-hand boundary (inclusive)
+    // readyToStart = a channel which will receive [true] then immediately close when the parent
+    //                iteration is done with elements from iLeft to iRight
+    // done = quickSort will send [true] over this channel when it's done processing all of its
+    //        elements
+    quickSort = func(iLeft int, iRight int, readyToStart chan bool, done chan bool) {
+        finalize := func() {
+            fmt.Println("Done with a QuickSort iteration")
+            done <- true
+        }
+        defer finalize()
+
+        // wait
+        <-readyToStart
+
+        fmt.Printf("\tDoing quickSort(left = %d, right = %d, done = <chan bool>\n", iLeft, iRight)
+
+        if iLeft >= iRight {
+            // handle a couple of edge-cases
+            ///done <- true
+            return
+        }
+
+        /** atomically swap the indices of two images, given their ID's */
+        swapIndices := func(a things.ID, b things.ID) {
+            tx, err := db.Begin()
             if err != nil {
                 log.Fatal(err)
             }
-            return id
+            var iA, iB int
+            err = tx.QueryRow("SELECT img_index FROM images WHERE id = ?", a).Scan(&iA)
+            if err != nil {
+                log.Fatal(err)
+            }
+            err = tx.QueryRow("SELECT img_index FROM images WHERE id = ?", b).Scan(&iB)
+            if err != nil {
+                log.Fatal(err)
+            }
+            _, err = tx.Exec("UPDATE images SET img_index = ? WHERE id = ?", iB, a)
+            if err != nil {
+                log.Fatal(err)
+            }
+            _, err = tx.Exec("UPDATE images SET img_index = ? WHERE id = ?", iA, b)
+            if err != nil {
+                log.Fatal(err)
+            }
+            tx.Commit()
         }
-    }
 
-    var quickSort func(things.ID, things.ID, things.ID, chan bool)
+        startedLeft := false
+        startedRight := false
 
-    quickSort = func(left things.ID, pivot things.ID, right things.ID, done chan bool) {
-        var iLeft, iRight int
-        err := db.QueryRow("SELECT img_index FROM images WHERE id = ?", left).Scan(&iLeft)
+        readyForLeft := make(chan bool)
+        readyForRight := make(chan bool)
+
+        iCenter := (iLeft + iRight) / 2
+
+        isDoneLeft := make(chan bool)
+        go quickSort(iLeft, iCenter, readyForLeft, isDoneLeft)
+
+        isDoneRight := make(chan bool)
+        go quickSort(iCenter + 1, iRight, readyForRight, isDoneRight)
+
+        var left, right, pivot things.ID
+        err := db.QueryRow("SELECT id FROM images WHERE img_index = ?", iLeft).Scan(&left)
         if err != nil {
             log.Fatal(err)
         }
-        err = db.QueryRow("SELECT img_index FROM images WHERE id = ?", right).Scan(&iRight)
+        err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", iRight).Scan(&right)
         if err != nil {
             log.Fatal(err)
         }
+        err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", iCenter).Scan(&pivot)
+        if err != nil {
+            log.Fatal(err)
+        }
+
         l := iLeft
         r := iRight
-        if iLeft > iRight {
-            done <- true
-            return
-        }
-        if left == right {
-            done <- true
-            return
-        }
+
         for true {
             if left == pivot {
+                // jump over the pivot
                 l = l + 1
                 err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", l).Scan(&left)
                 if err != nil {
                     fmt.Printf("Error in moving left over the pivot when l = %d, message: ", l)
-                    done <- true
                     return
                 }
             }
+
             var request things.IDPair
             request.Fst = left
             request.Snd = pivot
-            RETRY:
-            fmt.Printf("Requesting images left %d and pivot %d (right = %d)\n", int(left), int(pivot), int(right))
-            req <- request
-            fmt.Println("Request went through, now waiting for a response")
-            ids := <-resp
-            fmt.Println("Response received")
-            isValid := (ids.Fst == request.Fst && ids.Snd == request.Snd)
-            isValid = isValid || (ids.Fst == request.Snd && ids.Snd == request.Fst)
-            if !isValid {
-                fmt.Println("Invalid response, trying again")
-                goto RETRY
-            }
+
+
             cmp := things.GetComparison(db, left, pivot)
-            if cmp <= 0 { // images[left] > images[pivot]
-                // swap index of images[left] with images[right]
-                _, err = db.Exec("UPDATE images SET img_index = ? WHERE id = ?", r, left)
+
+            fmt.Printf("\tMight need a stronger comparison for %d and %d\n", request.Fst, request.Snd)
+            for cmp * cmp < 4 {
+                random := things.GetRandomPair(db)
+                go scheduler.RequestComparison(random, req, resp)
+                fmt.Printf("Need a stronger comparison for %d and %d\n", request.Fst, request.Snd)
+                scheduler.RequestComparison(request, req, resp)
+                cmp = things.GetComparison(db, left, pivot)
+            }
+
+            // if we're above the pivot of the left child, start working on its comparisons
+            if l > (iLeft + iCenter) / 2 && !startedLeft {
+                fmt.Println("Working on the left child's comparisons preemptively...")
+                var newPivot, rando things.ID
+                iPivot := (iLeft + iCenter) / 2
+                err := db.QueryRow("SELECT id FROM images WHERE img_index = ?", iPivot).Scan(&newPivot)
                 if err != nil {
                     log.Fatal(err)
                 }
-                _, err = db.Exec("UPDATE images SET img_index = ? WHERE id = ?", l, right)
+                query := `
+                SELECT id
+                FROM images
+                WHERE img_index >= ? AND img_index < ? AND img_index < ? AND img_index != ?
+                ORDER BY RANDOM()
+                LIMIT 1
+                `
+                err = db.QueryRow(query, iLeft, l, iCenter, iPivot).Scan(&rando)
                 if err != nil {
                     log.Fatal(err)
                 }
-                // move r down
+
+                var request things.IDPair
+                request.Fst = newPivot
+                request.Snd = rando
+
+                scheduler.RequestComparison(request, req, resp)
+            }
+            // if we're below the pivot of the right child, start working on its comparisons
+            if r < (iRight + (iCenter + 1)) / 2 && !startedRight {
+                fmt.Println("Working on the right child's comparisons preemptively...")
+                var newPivot, rando things.ID
+                iPivot := (iRight + (iCenter + 1)) / 2
+                err := db.QueryRow("SELECT id FROM images WHERE img_index = ?", iPivot).Scan(&newPivot)
+                if err != nil {
+                    log.Fatal(err)
+                }
+                query := `
+                SELECT id
+                FROM images
+                WHERE img_index > ? AND img_index <= ? AND img_index != ?
+                ORDER BY RANDOM()
+                LIMIT 1
+                `
+                err = db.QueryRow(query, r, iRight, iPivot).Scan(&rando)
+                if err != nil {
+                    log.Fatal(err)
+                }
+
+                var request things.IDPair
+                request.Fst = newPivot
+                request.Snd = rando
+
+                scheduler.RequestComparison(request, req, resp)
+            }
+
+            if cmp >= 0 { // images[left] > images[pivot]
+                swapIndices(left, right)
+
                 r = r - 1
-                // select the new right from r
+                // update the new id's
                 err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", r).Scan(&right)
+                if err != nil {
+                    log.Fatal(err)
+                }
                 err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", l).Scan(&left)
-                fmt.Println("Succesfully did a move in flagSort")
+                if err != nil {
+                    log.Fatal(err)
+                }
+                //fmt.Println("Succesfully did a move in flagSort")
             } else {
                 l = l + 1
                 // select the new left from l
                 err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", l).Scan(&left)
             }
 
-            if l > r {
-                newPivot := selectPivot(iLeft, iRight)
-                if newPivot == -1 || iLeft == iRight || iRight - iLeft <= 1 {
-                    done <- true
-                    return
-                } else {
-                    iCenter := (iLeft + iRight) / 2
+            if l > iCenter && !startedLeft {
+                fmt.Println("\tStarting left child")
+                readyForLeft <- true
+                startedLeft = true
+            }
+            if r <= iCenter && !startedRight {
+                fmt.Println("\tStarting right child")
+                readyForRight <- true
+                startedRight = true
+            }
 
-                    isDoneLeft := make(chan bool)
-                    err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", iLeft).Scan(&left)
-                    db.QueryRow("SELECT id FROM images WHERE img_index = ?", iCenter).Scan(&pivot)
-                    go quickSort(left, selectPivot(iLeft, iCenter), pivot, isDoneLeft)
-
-                    isDoneRight := make(chan bool)
-                    db.QueryRow("SELECT id FROM images WHERE img_index = ?", iCenter + 1).Scan(&left)
-                    db.QueryRow("SELECT id FROM images WHERE img_index = ?", iRight).Scan(&right)
-                    go quickSort(left, selectPivot(iCenter + 1, iRight), right, isDoneRight)
-
-                    // I don't really care about the results, I just need to wait for these to finish executing
-                    <-isDoneLeft
-                    <-isDoneRight
-
-                    done <- true
-                    return
+            if l >= r {
+                if !startedLeft {
+                    fmt.Println("\tStarting left child")
+                    readyForLeft <- true
                 }
+                if !startedRight {
+                    fmt.Println("\tStarting right child")
+                    readyForRight <- true
+                }
+                fmt.Println("Basically done with a quickSort iteration; now just waiting on kids")
+                // I don't really care about the results, I just need to wait for these to finish executing
+                <-isDoneLeft
+                <-isDoneRight
+
+                return
             }
         }
     }
 
     done := make(chan bool)
+    readyToStart := make(chan bool)
 
-    go quickSort(left, pivot, right, done)
+    go quickSort(left, right, readyToStart, done)
 
+    readyToStart <- true
     isDone := <-done
 
     if isDone {
@@ -379,6 +477,7 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
     }
 
     flagSort(db, req, resp)
+    return
 }
 
 func main() {
@@ -401,7 +500,7 @@ func main() {
     }
 
     r.HandleFunc("/ranks", RanksHandler(db))
-    r.HandleFunc("/judge", JudgeHandler(db, imageComparisonRequests))
+    r.HandleFunc("/judge", JudgeHandler(db, imageComparisonRequests, imageComparisonResponses))
     r.HandleFunc("/vote", VoteHandler(db, imageComparisonResponses))
     r.HandleFunc("/shutdown", ShutdownHandler(srv, db))
     r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
