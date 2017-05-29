@@ -1,3 +1,2 @@
-FROM ubuntu:latest
-RUN apt-get -y update && \
-        apt-get install -y golang
+FROM chrismamo1/reflagvsflag:base
+RUN go run ./main.go
