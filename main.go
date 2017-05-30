@@ -7,14 +7,15 @@ import (
     "time"
     "log"
     "database/sql"
-    _ "github.com/mattn/go-sqlite3"
+    _ "github.com/lib/pq"
     "io/ioutil"
     "strconv"
     "./things"
     scheduler "./comparisonScheduler")
 
 func initDb() *sql.DB {
-    db, err := sql.Open("sqlite3", "./CuterThing.db")
+    dbParams := os.ExpandEnv("user=db_master dbname=reflagvsflag_db sslmode=verify-full password=${REFLAGVSFLAG_DB_PASSWORD} host=${REFLAGVSFLAG_DB_HOST}")
+    db, err := sql.Open("postgres", dbParams)
     if err != nil {
         log.Fatal(err)
     }

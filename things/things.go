@@ -8,7 +8,7 @@ import (
     "fmt"
     "errors"
     "regexp"
-    _ "github.com/mattn/go-sqlite3"
+    _ "github.com/lib/pq"
     "io/ioutil")
 
 type ID int
