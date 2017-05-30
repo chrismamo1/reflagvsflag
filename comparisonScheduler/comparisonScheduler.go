@@ -1,7 +1,7 @@
 package comparisonScheduler
 
 import (
-    "things")
+    "github.com/chrismamo1/reflagvsflag/things")
 
 func RequestComparison(ids things.IDPair, reqs chan things.IDPair, resps chan things.IDPair) {
     reqs <- ids
