@@ -10,8 +10,8 @@ import (
     _ "github.com/mattn/go-sqlite3"
     "io/ioutil"
     "strconv"
-    "github.com/chrismamo1/reflagvsflag/things"
-    scheduler "github.com/chrismamo1/reflagvsflag/comparisonScheduler")
+    "./things"
+    scheduler "./comparisonScheduler")
 
 func initDb() *sql.DB {
     db, err := sql.Open("sqlite3", "./CuterThing.db")
