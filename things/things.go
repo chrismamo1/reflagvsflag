@@ -1,4 +1,4 @@
-package things
+package "github.com/chrismamo1/reflagvsflag/things"
 
 import (
     "html/template"
