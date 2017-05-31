@@ -11,7 +11,7 @@ import (
     "io/ioutil"
     "strconv"
     "github.com/chrismamo1/reflagvsflag/things"
-    scheduler "github.com/reflagvsflag/comparisonScheduler")
+    scheduler "github.com/chrismamo1/reflagvsflag/comparisonScheduler")
 
 func initDb() *sql.DB {
     dbParams := os.ExpandEnv("user=db_master dbname=reflagvsflag_db sslmode=verify-full password=${REFLAGVSFLAG_DB_PASSWORD} host=${REFLAGVSFLAG_DB_HOST}")
