@@ -23,8 +23,21 @@ func initDb() *sql.DB {
     }
 
     statement := `
+    DROP TABLE IF EXISTS images CASCADE;
+    DROP TABLE IF EXISTS comparisons CASCADE;
+    DROP TABLE IF EXISTS users CASCADE;
+    DROP TABLE IF EXISTS exposure CASCADE;
+    DROP TABLE IF EXISTS votes;
+    `
+    _, err = db.Exec(statement)
+    if err != nil {
+        log.Printf("%q: %s\n", err, statement)
+        return nil
+    }
+
+    statement := `
     CREATE TABLE IF NOT EXISTS images (
-        id INTEGER PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         path TEXT NOT NULL UNIQUE,
         name TEXT,
         description TEXT,
