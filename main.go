@@ -16,7 +16,7 @@ import (
     scheduler "github.com/chrismamo1/reflagvsflag/comparisonScheduler")
 
 func initDb() *sql.DB {
-    dbParams := os.ExpandEnv("user=db_master dbname=reflagvsflag_db sslmode=verify-full password=${REFLAGVSFLAG_DB_PASSWORD} host=${REFLAGVSFLAG_DB_HOST}")
+    dbParams := os.ExpandEnv("user=db_master dbname=reflagvsflag_db sslmode=disable password=${REFLAGVSFLAG_DB_PASSWORD} host=${REFLAGVSFLAG_DB_HOST}")
     db, err := sql.Open("postgres", dbParams)
     if err != nil {
         log.Fatal(err)
