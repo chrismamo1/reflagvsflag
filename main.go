@@ -41,17 +41,17 @@ func initDb() *sql.DB {
         id INTEGER PRIMARY KEY,
         ip_addr TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS exposure (
-        user INT NOT NULL,
+        "user" INT NOT NULL,
         image INT NOT NULL,
         heat INT NOT NULL,
-        FOREIGN KEY (user) REFERENCES users(id),
+        FOREIGN KEY ("user") REFERENCES users(id),
         FOREIGN KEY (image) REFERENCES images(id));
     CREATE TABLE IF NOT EXISTS votes (
         id INTEGER PRIMARY KEY,
-        user INT NOT NULL,
+        "user" INT NOT NULL,
         winner INT NOT NULL,
         loser INT NOT NULL,
-        FOREIGN KEY (user) REFERENCES users(id),
+        FOREIGN KEY ("user") REFERENCES users(id),
         FOREIGN KEY (winner) REFERENCES images(id),
         FOREIGN KEY (loser) REFERENCES images(id),
         CONSTRAINT winner != loser);
@@ -95,12 +95,12 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
         user := users.GetByAddr(db, req.RemoteAddr)
         query := `
         BEGIN TRAN
-            IF EXISTS(SELECT * FROM EXPOSURE WHERE user = ? AND image = ?)
+            IF EXISTS(SELECT * FROM EXPOSURE WHERE "user" = ? AND image = ?)
             THEN BEGIN
-                UPDATE exposure SET heat = heat + 1 WHERE user = ? AND image = ?
+                UPDATE exposure SET heat = heat + 1 WHERE "user" = ? AND image = ?
             END
             ELSE BEGIN
-                INSERT INTO exposure (user, image, heat) VALUES (?, ?, 1)
+                INSERT INTO exposure ("user", image, heat) VALUES (?, ?, 1)
             END
         COMMIT TRAN
         `
