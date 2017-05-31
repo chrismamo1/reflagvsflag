@@ -13,7 +13,7 @@ type User struct {
 
 func GetByAddr(db *sql.DB, addr string) *User {
     u := new(User)
-    err := db.QueryRow("SELECT id, ip_addr FROM users WHERE ip_addr = ?", addr).Scan(&u.Id, &u.Addr)
+    err := db.QueryRow("SELECT id, ip_addr FROM users WHERE ip_addr = $1", addr).Scan(&u.Id, &u.Addr)
     if err != nil {
         return nil
     }

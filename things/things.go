@@ -176,7 +176,7 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
     q := `
     SELECT id, path, desc, img_index, heat
     FROM images
-    WHERE id = ? OR id = ?;
+    WHERE id = $1 OR id = $2;
     `
     fmt.Printf("selecting images %d and %d\n", int(ids.Fst), int(ids.Snd))
     rows, err := db.Query(q, ids.Fst, ids.Snd)
@@ -231,7 +231,7 @@ func GetColdestPair(db *sql.DB) IDPair {
         if err != nil {
             log.Fatal(err)
         }
-        err = db.QueryRow("SELECT id FROM images WHERE id != ? ORDER BY RANDOM() LIMIT 1", ids.Fst).Scan(&ids.Snd)
+        err = db.QueryRow("SELECT id FROM images WHERE id != $1 ORDER BY RANDOM() LIMIT 1", ids.Fst).Scan(&ids.Snd)
         if err != nil {
             log.Fatal(err)
         }
@@ -246,7 +246,7 @@ func GetRandomPair(db *sql.DB) IDPair {
     if err != nil {
         log.Fatal(err)
     }
-    err = db.QueryRow("SELECT id FROM images WHERE id != ? ORDER BY RANDOM() LIMIT 1", ids.Fst).Scan(&ids.Snd)
+    err = db.QueryRow("SELECT id FROM images WHERE id != $1 ORDER BY RANDOM() LIMIT 1", ids.Fst).Scan(&ids.Snd)
     if err != nil {
         log.Fatal(err)
     }
@@ -256,7 +256,7 @@ func GetRandomPair(db *sql.DB) IDPair {
 
 func GetRandomIdAboveIndex(db *sql.DB, index int) ID {
     var rv ID
-    err := db.QueryRow("SELECT id FROM images WHERE img_index > ? ORDER BY RANDOM() LIMIT 1", index).Scan(&rv)
+    err := db.QueryRow("SELECT id FROM images WHERE img_index > $1 ORDER BY RANDOM() LIMIT 1", index).Scan(&rv)
     if err != nil {
         log.Fatal(err)
     }
@@ -266,7 +266,7 @@ func GetRandomIdAboveIndex(db *sql.DB, index int) ID {
 func GetRandomPairAboveIndex(db *sql.DB, index int) IDPair {
     var ids IDPair
     ids.Fst = GetRandomIdAboveIndex(db, index)
-    err := db.QueryRow("SELECT id FROM images WHERE id != ? AND img_index > ? ORDER BY RANDOM() LIMIT 1", ids.Fst, index).Scan(&ids.Snd)
+    err := db.QueryRow("SELECT id FROM images WHERE id != $1 AND img_index > $2 ORDER BY RANDOM() LIMIT 1", ids.Fst, index).Scan(&ids.Snd)
     if err != nil {
         log.Fatal(err)
     }

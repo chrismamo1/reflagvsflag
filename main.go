@@ -95,12 +95,12 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
         user := users.GetByAddr(db, req.RemoteAddr)
         query := `
         BEGIN TRAN
-            IF EXISTS(SELECT * FROM EXPOSURE WHERE "user" = ? AND image = ?)
+            IF EXISTS(SELECT * FROM EXPOSURE WHERE "user" = $1 AND image = $2)
             THEN BEGIN
-                UPDATE exposure SET heat = heat + 1 WHERE "user" = ? AND image = ?
+                UPDATE exposure SET heat = heat + 1 WHERE "user" = $3 AND image = $4
             END
             ELSE BEGIN
-                INSERT INTO exposure ("user", image, heat) VALUES (?, ?, 1)
+                INSERT INTO exposure ("user", image, heat) VALUES ($5, $6, 1)
             END
         COMMIT TRAN
         `
@@ -247,7 +247,7 @@ func refreshImages(db *sql.DB) {
             max = 0
         }
 
-        query := `INSERT INTO images (name, path, img_index, heat) VALUES (?, ?, ?, 0)`
+        query := `INSERT INTO images (name, path, img_index, heat) VALUES ($1, $2, $3, 0)`
 
         path, err := ioutil.ReadFile("./static/flags/" + file.Name())
         if err != nil {
@@ -321,19 +321,19 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
                 log.Fatal(err)
             }
             var iA, iB int
-            err = tx.QueryRow("SELECT img_index FROM images WHERE id = ?", a).Scan(&iA)
+            err = tx.QueryRow("SELECT img_index FROM images WHERE id = $1", a).Scan(&iA)
             if err != nil {
                 log.Fatal(err)
             }
-            err = tx.QueryRow("SELECT img_index FROM images WHERE id = ?", b).Scan(&iB)
+            err = tx.QueryRow("SELECT img_index FROM images WHERE id = $1", b).Scan(&iB)
             if err != nil {
                 log.Fatal(err)
             }
-            _, err = tx.Exec("UPDATE images SET img_index = ? WHERE id = ?", iB, a)
+            _, err = tx.Exec("UPDATE images SET img_index = $1 WHERE id = $2", iB, a)
             if err != nil {
                 log.Fatal(err)
             }
-            _, err = tx.Exec("UPDATE images SET img_index = ? WHERE id = ?", iA, b)
+            _, err = tx.Exec("UPDATE images SET img_index = $1 WHERE id = $2", iA, b)
             if err != nil {
                 log.Fatal(err)
             }
@@ -355,15 +355,15 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
         go quickSort(iCenter + 1, iRight, readyForRight, isDoneRight)
 
         var left, right, pivot things.ID
-        err := db.QueryRow("SELECT id FROM images WHERE img_index = ?", iLeft).Scan(&left)
+        err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iLeft).Scan(&left)
         if err != nil {
             log.Fatal(err)
         }
-        err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", iRight).Scan(&right)
+        err = db.QueryRow("SELECT id FROM images WHERE img_index = $1", iRight).Scan(&right)
         if err != nil {
             log.Fatal(err)
         }
-        err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", iCenter).Scan(&pivot)
+        err = db.QueryRow("SELECT id FROM images WHERE img_index = $1", iCenter).Scan(&pivot)
         if err != nil {
             log.Fatal(err)
         }
@@ -375,7 +375,7 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
             if left == pivot {
                 // jump over the pivot
                 l = l + 1
-                err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", l).Scan(&left)
+                err = db.QueryRow("SELECT id FROM images WHERE img_index = $1", l).Scan(&left)
                 if err != nil {
                     fmt.Printf("Error in moving left over the pivot when l = %d, message: ", l)
                     return
@@ -403,14 +403,14 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
                 fmt.Println("Working on the left child's comparisons preemptively...")
                 var newPivot, rando things.ID
                 iPivot := (iLeft + iCenter) / 2
-                err := db.QueryRow("SELECT id FROM images WHERE img_index = ?", iPivot).Scan(&newPivot)
+                err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iPivot).Scan(&newPivot)
                 if err != nil {
                     log.Fatal(err)
                 }
                 query := `
                 SELECT id
                 FROM images
-                WHERE img_index >= ? AND img_index < ? AND img_index < ? AND img_index != ?
+                WHERE img_index >= $1 AND img_index < $2 AND img_index < $3 AND img_index != $4
                 ORDER BY RANDOM()
                 LIMIT 1
                 `
@@ -430,14 +430,14 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
                 fmt.Println("Working on the right child's comparisons preemptively...")
                 var newPivot, rando things.ID
                 iPivot := (iRight + (iCenter + 1)) / 2
-                err := db.QueryRow("SELECT id FROM images WHERE img_index = ?", iPivot).Scan(&newPivot)
+                err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iPivot).Scan(&newPivot)
                 if err != nil {
                     log.Fatal(err)
                 }
                 query := `
                 SELECT id
                 FROM images
-                WHERE img_index > ? AND img_index <= ? AND img_index != ?
+                WHERE img_index > $1 AND img_index <= $2 AND img_index != $3
                 ORDER BY RANDOM()
                 LIMIT 1
                 `
@@ -458,11 +458,11 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
 
                 r = r - 1
                 // update the new id's
-                err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", r).Scan(&right)
+                err = db.QueryRow("SELECT id FROM images WHERE img_index = $1", r).Scan(&right)
                 if err != nil {
                     log.Fatal(err)
                 }
-                err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", l).Scan(&left)
+                err = db.QueryRow("SELECT id FROM images WHERE img_index = $1", l).Scan(&left)
                 if err != nil {
                     log.Fatal(err)
                 }
@@ -470,7 +470,7 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
             } else {
                 l = l + 1
                 // select the new left from l
-                err = db.QueryRow("SELECT id FROM images WHERE img_index = ?", l).Scan(&left)
+                err = db.QueryRow("SELECT id FROM images WHERE img_index = $1", l).Scan(&left)
             }
 
             if l > iCenter && !startedLeft {
