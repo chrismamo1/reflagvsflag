@@ -7,10 +7,12 @@ import (
     "time"
     "log"
     "database/sql"
+    "os"
     _ "github.com/lib/pq"
     "io/ioutil"
     "strconv"
     "github.com/chrismamo1/reflagvsflag/things"
+    "github.com/chrismamo1/reflagvsflag/users"
     scheduler "github.com/chrismamo1/reflagvsflag/comparisonScheduler")
 
 func initDb() *sql.DB {
@@ -89,9 +91,29 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
         var ids things.IDPair
         winner, _ := strconv.Atoi(req.FormValue("winner"))
         loser, _ := strconv.Atoi(req.FormValue("loser"))
+
+        user := users.GetByAddr(db, req.RemoteAddr)
+        query := `
+        BEGIN TRAN
+            IF EXISTS(SELECT * FROM EXPOSURE WHERE user = ? AND image = ?)
+            THEN BEGIN
+                UPDATE exposure SET heat = heat + 1 WHERE user = ? AND image = ?
+            END
+            ELSE BEGIN
+                INSERT INTO exposure (user, image, heat) VALUES (?, ?, 1)
+            END
+        COMMIT TRAN
+        `
+        if _, err := db.Exec(query, user.Id, winner, user.Id, winner, user.Id, winner); err != nil {
+            log.Fatal(err)
+        }
+        if _, err := db.Exec(query, user.Id, loser, user.Id, loser, user.Id, loser); err != nil {
+            log.Fatal(err)
+        }
+
         ids.Fst = things.ID(winner)
         ids.Snd = things.ID(loser)
-        query := "SELECT left, right, balance, heat FROM comparisons WHERE ((left = %d AND right = %d) OR (right = %d AND left = %d))"
+        query = "SELECT left, right, balance, heat FROM comparisons WHERE ((left = %d AND right = %d) OR (right = %d AND left = %d))"
         query = fmt.Sprintf(query, winner, loser, winner, loser)
         rows, err := db.Query(query)
         if err != nil {
