@@ -67,7 +67,7 @@ func initDb() *sql.DB {
 }
 
 func loadImageStore(db *sql.DB) []things.Thing {
-    rows, err := db.Query("SELECT id, path, desc, img_index, heat FROM images ORDER BY img_index ASC")
+    rows, err := db.Query("SELECT id, path, description, img_index, heat FROM images ORDER BY img_index ASC")
     if err != nil {
         log.Fatal(err)
     }
@@ -246,7 +246,7 @@ func refreshImages(db *sql.DB) {
             // 
             max = 0
         }
-        statement, err := tx.Prepare("INSERT INTO images(name,path,desc,img_index,heat) VALUES (?, ?, '', ?, 0);")
+        statement, err := tx.Prepare("INSERT INTO images(name,path,description,img_index,heat) VALUES (?, ?, '', ?, 0);")
         if err != nil {
             log.Fatal(err)
         }
