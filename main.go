@@ -24,6 +24,7 @@ func initDb() *sql.DB {
     CREATE TABLE IF NOT EXISTS images (
         id INTEGER PRIMARY KEY,
         path TEXT NOT NULL UNIQUE,
+        name TEXT,
         desc TEXT,
         img_index INT NOT NULL,
         heat INT NOT NULL);
@@ -36,13 +37,22 @@ func initDb() *sql.DB {
         FOREIGN KEY (right) REFERENCES images(id));
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY,
-        ip_addr TEXT NOT NULL);
+        ip_addr TEXT NOT NULL SECONDARY KEY);
     CREATE TABLE IF NOT EXISTS exposure (
         user INT NOT NULL,
         image INT NOT NULL,
         heat INT NOT NULL,
         FOREIGN KEY (user) REFERENCES users(id),
         FOREIGN KEY (image) REFERENCES images(id));
+    CREATE TABLE IF NOT EXISTS votes (
+        id INTEGER PRIMARY KEY,
+        user INT NOT NULL,
+        winner INT NOT NULL,
+        loser INT NOT NULL,
+        FOREIGN KEY (user) REFERENCES users(id),
+        FOREIGN KEY (winner) REFERENCES images(id),
+        FOREIGN KEY (loser) REFERENCES images(id),
+        CONSTRAINT winner != loser);
     `
     _, err = db.Exec(statement)
     if err != nil {
@@ -73,6 +83,10 @@ func loadImageStore(db *sql.DB) []things.Thing {
     }
     return imageStore
 }
+
+//func BumpExposure(db *sql.DB, ip string, img things.ID) {
+//    err := db.Query("SELECT id
+//}
 
 func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
