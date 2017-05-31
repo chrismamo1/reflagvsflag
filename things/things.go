@@ -100,7 +100,7 @@ func RenderNormal(thing Thing) string {
 }
 
 func getHead2HeadComparison(db *sql.DB, a ID, b ID) (Comparison, error) {
-    query := "SELECT left, right, balance FROM comparisons WHERE ((left = %d AND right = %d) OR (right = %d AND left = %d))"
+    query := "SELECT \"left\", \"right\", balance FROM comparisons WHERE ((\"left\" = %d AND \"right\" = %d) OR (\"right\" = %d AND \"left\" = %d))"
     query = fmt.Sprintf(query, a, b, a, b)
     rows, err := db.Query(query)
     if err != nil {
@@ -127,8 +127,8 @@ func getHead2HeadComparison(db *sql.DB, a ID, b ID) (Comparison, error) {
 
 func getAllNeighbouringComparisons(db *sql.DB, a ID, b ID) ([]Comparison, error) {
     query := `
-    SELECT left, right, balance FROM comparisons
-    WHERE NOT((left = %d AND right = %d) OR (right = %d AND left = %d)) -- exclude direct comparisons between a and b
+    SELECT "left", "right", balance FROM comparisons
+    WHERE NOT(("left" = %d AND "right" = %d) OR ("right" = %d AND "left" = %d)) -- exclude direct comparisons between a and b
     AND
 
     )
@@ -218,7 +218,7 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
 func GetColdestPair(db *sql.DB) IDPair {
     var ids IDPair
     query := `
-    SELECT left, right
+    SELECT "left", "right"
     FROM comparisons
     WHERE heat = (SELECT heat FROM comparisons ORDER BY heat ASC LIMIT 1)
     ORDER BY RANDOM()

@@ -31,12 +31,12 @@ func initDb() *sql.DB {
         img_index INT NOT NULL,
         heat INT NOT NULL);
     CREATE TABLE IF NOT EXISTS comparisons (
-        left INT NOT NULL,
-        right INT NOT NULL,
+        "left" INT NOT NULL,
+        "right" INT NOT NULL,
         balance INT NOT NULL,
         heat INT NOT NULL,
-        FOREIGN KEY (left) REFERENCES images(id),
-        FOREIGN KEY (right) REFERENCES images(id));
+        FOREIGN KEY ("left") REFERENCES images(id),
+        FOREIGN KEY ("right") REFERENCES images(id));
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY,
         ip_addr TEXT NOT NULL SECONDARY KEY);
@@ -113,7 +113,7 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
 
         ids.Fst = things.ID(winner)
         ids.Snd = things.ID(loser)
-        query = "SELECT left, right, balance, heat FROM comparisons WHERE ((left = %d AND right = %d) OR (right = %d AND left = %d))"
+        query = "SELECT \"left\", \"right\", balance, heat FROM comparisons WHERE ((\"left\" = %d AND \"right\" = %d) OR (\"right\" = %d AND \"left\" = %d))"
         query = fmt.Sprintf(query, winner, loser, winner, loser)
         rows, err := db.Query(query)
         if err != nil {
@@ -142,10 +142,10 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
             nrows = nrows + 1
         }
         if (nrows == 0) {
-            query = "INSERT INTO comparisons(left, right, balance, heat) VALUES (%d, %d, %d, %d);"
+            query = "INSERT INTO comparisons(\"left\", \"right\", balance, heat) VALUES (%d, %d, %d, %d);"
             query = fmt.Sprintf(query, winner, loser, -1, heat)
         } else {
-            query = "UPDATE comparisons SET balance = %d, heat = %d  WHERE left = %d AND right = %d;"
+            query = "UPDATE comparisons SET balance = %d, heat = %d  WHERE \"left\" = %d AND \"right\" = %d;"
             query = fmt.Sprintf(query, balance, heat, left, right)
         }
         _, err = db.Exec(query)
@@ -302,7 +302,7 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
         // wait
         <-readyToStart
 
-        fmt.Printf("\tDoing quickSort(left = %d, right = %d, done = <chan bool>\n", iLeft, iRight)
+        fmt.Printf("\tDoing quickSort(\"left\" = %d, \"right\" = %d, done = <chan bool>\n", iLeft, iRight)
 
         if iLeft >= iRight {
             // handle a couple of edge-cases
