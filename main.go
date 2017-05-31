@@ -22,7 +22,7 @@ func initDb() *sql.DB {
         log.Fatal(err)
     }
 
-    /*statement := `
+    statement := `
     DROP TABLE IF EXISTS images CASCADE;
     DROP TABLE IF EXISTS comparisons CASCADE;
     DROP TABLE IF EXISTS users CASCADE;
@@ -33,9 +33,9 @@ func initDb() *sql.DB {
     if err != nil {
         log.Printf("%q: %s\n", err, statement)
         return nil
-    }*/
+    }
 
-    statement := `
+    statement = `
     CREATE TABLE IF NOT EXISTS images (
         id SERIAL PRIMARY KEY,
         path TEXT NOT NULL UNIQUE,
@@ -260,7 +260,7 @@ func refreshImages(db *sql.DB) {
             max = 0
         }
 
-        query := `INSERT INTO images (name, path, img_index, heat) VALUES ($1, $2, $3, 0)`
+        query := `INSERT INTO images (name, path, img_index, heat, description) VALUES ($1, $2, $3, 0, '')`
 
         path, err := ioutil.ReadFile("./static/flags/" + file.Name())
         if err != nil {
