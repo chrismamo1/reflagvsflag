@@ -27,7 +27,7 @@ func initDb() *sql.DB {
         id INTEGER PRIMARY KEY,
         path TEXT NOT NULL UNIQUE,
         name TEXT,
-        desc TEXT,
+        description TEXT,
         img_index INT NOT NULL,
         heat INT NOT NULL);
     CREATE TABLE IF NOT EXISTS comparisons (
