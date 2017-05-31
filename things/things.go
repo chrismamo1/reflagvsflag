@@ -174,7 +174,7 @@ func GetComparison(db *sql.DB, a ID, b ID) int {
 
 func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
     q := `
-    SELECT id, path, desc, img_index, heat
+    SELECT id, path, description, img_index, heat
     FROM images
     WHERE id = $1 OR id = $2;
     `
