@@ -518,6 +518,7 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
 }
 
 func main() {
+    fmt.Println("About to initialize the database")
     db := initDb()
     defer fmt.Println("Closing shit")
     defer db.Close()
@@ -525,8 +526,10 @@ func main() {
     imageComparisonRequests := make(chan things.IDPair)
     imageComparisonResponses := make(chan things.IDPair)
 
+    fmt.Println("About to refresh images")
     refreshImages(db)
 
+    fmt.Println("About to create the mux")
     r := mux.NewRouter()
 
     srv := &http.Server{
@@ -544,5 +547,6 @@ func main() {
 
     go flagSort(db, imageComparisonRequests, imageComparisonResponses)
 
+    fmt.Println("About to ListenAndServe")
     srv.ListenAndServe()
 }
