@@ -230,7 +230,7 @@ func ShutdownHandler(srv *http.Server, db *sql.DB) func(http.ResponseWriter, *ht
 }
 
 func refreshImages(db *sql.DB) {
-    files, err := ioutil.ReadDir("./static/img")
+    files, err := ioutil.ReadDir("./static/flags")
     if err != nil {
         log.Fatal(err)
     }
@@ -246,12 +246,16 @@ func refreshImages(db *sql.DB) {
             // 
             max = 0
         }
-        statement, err := tx.Prepare("INSERT INTO images(path,desc,img_index,heat) VALUES (?, '', ?, 0);")
+        statement, err := tx.Prepare("INSERT INTO images(name,path,desc,img_index,heat) VALUES (?, ?, '', ?, 0);")
         if err != nil {
             log.Fatal(err)
         }
 
-        _, err = statement.Exec(file.Name(), max + 1)
+        path, err := ioutils.ReadFile(file.Name())
+        if err != nil {
+            log.Fatal(err)
+        }
+        _, err = statement.Exec(file.Name(), string(path), max + 1)
 
         tx.Commit()
         statement.Close()
