@@ -249,20 +249,22 @@ func refreshImages(db *sql.DB) {
 
         query := `INSERT INTO images ("name", "path", description, img_index, heat) VALUES (?, ?, '', ?, 0)`
 
-        path, err := ioutil.ReadFile(file.Name())
+        path, err := ioutil.ReadFile("./static/flags/" + file.Name())
         if err != nil {
+            fmt.Printf("Couldn't open the file \"%s\":\n")
             log.Fatal(err)
         }
 
         _, err = tx.Exec(query, file.Name(), string(path), max + 1)
         if err != nil {
-            fmt.Printf("fatal problem encountered while trying to run the query \"%s\"", query)
+            fmt.Printf("fatal problem encountered while trying to run the query \"%s\":\n", query)
             log.Fatal(err)
         }
 
-        tx.Commit()
+        err = tx.Commit()
 
         if err != nil {
+            fmt.Println("Found a non-fatal problem adding an image")
             // duplicate image
         }
     }
