@@ -253,15 +253,14 @@ func refreshImages(db *sql.DB) {
         if err != nil {
             log.Fatal(err)
         }
-        var max, id int
-        err = tx.QueryRow("SELECT MAX(img_index), MAX(id) FROM images").Scan(&max)
+        var max int
+        err = tx.QueryRow("SELECT MAX(img_index) FROM images").Scan(&max)
         if err != nil {
             // 
             max = 0
-            id = 0
         }
 
-        query := `INSERT INTO images (name, path, img_index, heat, id) VALUES ($1, $2, $3, 0, $4)`
+        query := `INSERT INTO images (name, path, img_index, heat) VALUES ($1, $2, $3, 0)`
 
         path, err := ioutil.ReadFile("./static/flags/" + file.Name())
         if err != nil {
@@ -269,9 +268,10 @@ func refreshImages(db *sql.DB) {
             log.Fatal(err)
         }
 
-        _, err = tx.Exec(query, file.Name(), string(path), max + 1, id + 1)
+        _, err = tx.Exec(query, file.Name(), string(path), max + 1)
         if err != nil {
             fmt.Printf("fatal problem encountered while trying to run the query \"%s\":\n", query)
+            fmt.Printf("(used values: \"%s\", \"%s\", %d)\n", file.Name(), string(path), max + 1)
             log.Fatal(err)
         }
 
