@@ -247,7 +247,7 @@ func refreshImages(db *sql.DB) {
             max = 0
         }
 
-        query := `INSERT INTO images ("name", "path", description, img_index, heat) VALUES (?, ?, '', ?, 0)`
+        query := `INSERT INTO images (name, path, img_index, heat) VALUES (?, ?, ?, 0)`
 
         path, err := ioutil.ReadFile("./static/flags/" + file.Name())
         if err != nil {
