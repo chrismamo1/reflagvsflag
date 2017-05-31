@@ -4,4 +4,4 @@ RUN go get github.com/gorilla/mux
 RUN go get github.com/lib/pq
 RUN go get github.com/chrismamo1/reflagvsflag
 RUN pwd && ls
-CMD cd /go/src/github.com/chrismamo1/reflagvsflag && ls && pwd && go run ./main.go
+CMD go get github.com/chrismamo1/reflagvsflag && cd /go/src/github.com/chrismamo1/reflagvsflag && ls && pwd && go run ./main.go
