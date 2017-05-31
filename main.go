@@ -246,8 +246,11 @@ func refreshImages(db *sql.DB) {
             // 
             max = 0
         }
-        statement, err := tx.Prepare("INSERT INTO images(name,path,description,img_index,heat) VALUES (?, ?, '', ?, 0);")
+
+        query := "INSERT INTO images (name, path, description, img_index, heat) VALUES (?, ?, '', ?, 0)"
+        statement, err := tx.Prepare(query)
         if err != nil {
+            fmt.Printf("fatal problem encountered while trying to prepare the query \"%s\"", query)
             log.Fatal(err)
         }
 
