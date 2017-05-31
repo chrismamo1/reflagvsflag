@@ -251,7 +251,7 @@ func refreshImages(db *sql.DB) {
             log.Fatal(err)
         }
 
-        path, err := ioutils.ReadFile(file.Name())
+        path, err := ioutil.ReadFile(file.Name())
         if err != nil {
             log.Fatal(err)
         }
