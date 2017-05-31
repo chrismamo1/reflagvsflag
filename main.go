@@ -10,8 +10,8 @@ import (
     _ "github.com/lib/pq"
     "io/ioutil"
     "strconv"
-    "./things"
-    scheduler "./comparisonScheduler")
+    "github.com/chrismamo1/reflagvsflag/things"
+    scheduler "github.com/reflagvsflag/comparisonScheduler")
 
 func initDb() *sql.DB {
     dbParams := os.ExpandEnv("user=db_master dbname=reflagvsflag_db sslmode=verify-full password=${REFLAGVSFLAG_DB_PASSWORD} host=${REFLAGVSFLAG_DB_HOST}")
@@ -83,10 +83,6 @@ func loadImageStore(db *sql.DB) []things.Thing {
     }
     return imageStore
 }
-
-//func BumpExposure(db *sql.DB, ip string, img things.ID) {
-//    err := db.Query("SELECT id
-//}
 
 func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
