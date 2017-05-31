@@ -248,20 +248,19 @@ func refreshImages(db *sql.DB) {
         }
 
         query := `INSERT INTO images ("name", "path", description, img_index, heat) VALUES (?, ?, '', ?, 0)`
-        statement, err := tx.Prepare(query)
-        if err != nil {
-            fmt.Printf("fatal problem encountered while trying to prepare the query \"%s\"", query)
-            log.Fatal(err)
-        }
 
         path, err := ioutil.ReadFile(file.Name())
         if err != nil {
             log.Fatal(err)
         }
-        _, err = statement.Exec(file.Name(), string(path), max + 1)
+
+        _, err = tx.Exec(query, file.Name(), string(path), max + 1)
+        if err != nil {
+            fmt.Printf("fatal problem encountered while trying to run the query \"%s\"", query)
+            log.Fatal(err)
+        }
 
         tx.Commit()
-        statement.Close()
 
         if err != nil {
             // duplicate image
