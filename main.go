@@ -270,9 +270,9 @@ func refreshImages(db *sql.DB) {
 
         _, err = tx.Exec(query, file.Name(), string(path), max + 1)
         if err != nil {
-            fmt.Printf("fatal problem encountered while trying to run the query \"%s\":\n", query)
+            fmt.Printf("problem encountered while trying to run the query \"%s\":\n", query)
             fmt.Printf("(used values: \"%s\", \"%s\", %d)\n", file.Name(), string(path), max + 1)
-            log.Fatal(err)
+            log.Print(err)
         }
 
         err = tx.Commit()
