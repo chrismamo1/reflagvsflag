@@ -54,7 +54,7 @@ func initDb() *sql.DB {
         FOREIGN KEY ("user") REFERENCES users(id),
         FOREIGN KEY (winner) REFERENCES images(id),
         FOREIGN KEY (loser) REFERENCES images(id),
-        CONSTRAINT winner != loser);
+        CHECK (NOT(winner = loser)));
     `
     _, err = db.Exec(statement)
     if err != nil {
