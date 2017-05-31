@@ -1,5 +1,5 @@
 FROM golang:1.8
-EXPOSE 3456
+EXPOSE 80
 RUN go get github.com/gorilla/mux
 RUN go get github.com/lib/pq
 RUN go get github.com/chrismamo1/reflagvsflag
