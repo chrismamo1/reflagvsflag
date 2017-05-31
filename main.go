@@ -35,7 +35,7 @@ func initDb() *sql.DB {
         return nil
     }
 
-    statement := `
+    statement = `
     CREATE TABLE IF NOT EXISTS images (
         id SERIAL PRIMARY KEY,
         path TEXT NOT NULL UNIQUE,
