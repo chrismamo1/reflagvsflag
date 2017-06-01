@@ -459,6 +459,7 @@ func flagSort(db *sql.DB, scheduler sched.Scheduler) {
                 for scheduler.HasRequest(request) {
                     // no-op
                     runtime.Gosched()
+                    time.Sleep(time.Duration(500) * time.Millisecond)
                 }
                 cmp = things.GetComparison(db, left, pivot)
             }
