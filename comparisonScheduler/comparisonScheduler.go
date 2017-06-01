@@ -5,6 +5,7 @@ import (
     "errors"
     "log"
     "github.com/chrismamo1/reflagvsflag/things"
+    "github.com/chrismamo1/reflagvsflag/users"
     _ "github.com/lib/pq")
 
 type Scheduler struct {
@@ -82,13 +83,19 @@ func (this *Scheduler) FillRequest(ids things.IDPair) {
     }
 }
 
-func (this *Scheduler) NextRequest() *things.IDPair {
+func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
     var ids things.IDPair
     var id int
 
-    query := "SELECT id, fst, snd FROM scheduler ORDER BY placement ASC LIMIT 1"
+    query := `
+        SELECT id, fst, snd
+        FROM scheduler
+        ORDER BY
+            SUM(SELECT heat FROM exposure WHERE "user" = $1 AND (image = fst OR image = snd)) ASC,
+            placement ASC
+        LIMIT 1`
 
-    if err := this.db.QueryRow(query).Scan(&id, &ids.Fst, &ids.Snd); err != nil {
+    if err := this.db.QueryRow(query, user.Id).Scan(&id, &ids.Fst, &ids.Snd); err != nil {
         log.Fatal("Error while selecting the highest priority scheduling request: ", err)
     }
 
