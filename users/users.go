@@ -3,11 +3,11 @@ package users
 import (
     "fmt"
     "time"
-    "bytes"
+    //"bytes"
     "database/sql"
     "github.com/chrismamo1/reflagvsflag/things"
     "log"
-    "html/template"
+    //"html/template"
     _ "github.com/lib/pq")
 
 type ID int
@@ -89,7 +89,7 @@ func renderVotes(votes []vote) string {
 
 /// TODO: finish this
 func (this *User) Render(db *sql.DB, className string) string {
-    format := `
+    /*format := `
         <div class='{{.ClassName}}'>
             <h1>ID: {{.Id}}</h1>
             <h2>IP Address: {{.Addr}}</h2>
@@ -120,7 +120,20 @@ func (this *User) Render(db *sql.DB, className string) string {
         log.Fatal(err)
     }
 
-    return buffer.String()
+    return buffer.String()*/
+
+    renderedVotes := renderVotes(this.GetVotes(db))
+
+    return `
+        <div class='` + className + `'>
+            <h1>ID: {{.Id}}</h1>
+            <h2>IP Address: ` + this.Addr + `</h2>
+            <div>
+                <h1>Votes:</h1>
+                ` + renderedVotes + `
+            </div>
+        </div>
+        `
 }
 
 func GetAll(db *sql.DB) []User {
