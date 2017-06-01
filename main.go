@@ -281,6 +281,16 @@ RETRY:
     }
 }
 
+func IndexHandler(writer http.ResponseWriter, req *http.Request) {
+    writer.Header().Add("Location", "/judge")
+    writer.WriteHeader(302)
+    page := `
+        <h1>Thanks for voting!</h1>
+    `
+    writer.Write([]byte(page))
+    return
+}
+
 func ShutdownHandler(srv *http.Server, db *sql.DB) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
         defer db.Close()
@@ -604,6 +614,7 @@ func main() {
         ReadTimeout:    15 * time.Second,
     }
 
+    r.HandleFunc("/index", IndexHandler(db))
     r.HandleFunc("/ranks", RanksHandler(db))
     r.HandleFunc("/users", UsersHandler(db))
     r.HandleFunc("/judge", JudgeHandler(db, imageComparisonRequests, imageComparisonResponses))
