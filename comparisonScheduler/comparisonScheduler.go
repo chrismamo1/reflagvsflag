@@ -19,7 +19,7 @@ func (this *Scheduler) appendRequest(ids things.IDPair) {
                     $2,
                     SELECT CASE
                         WHEN EXISTS (SELECT * FROM scheduler LIMIT 1)
-                            THEN ((SELECT MAX(placement) FROM scheduler) + 1)
+                            THEN MAX(placement) + 1)
                         ELSE 0);`
     if _, err := this.db.Exec(statement, ids.Fst, ids.Snd); err != nil {
         log.Fatal("Error while requesting a comparison: ", err)
