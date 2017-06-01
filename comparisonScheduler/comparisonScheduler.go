@@ -42,6 +42,8 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
 }
 
 func (this *Scheduler) HasRequest(ids things.IDPair) bool {
+    this.mux.Lock()
+    defer this.mux.Unlock()
     for n := this.requests; n != nil; n = n.next {
         if n.x.Equivalent(ids) {
             return true

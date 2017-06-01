@@ -8,6 +8,7 @@ import (
     "log"
     "database/sql"
     "os"
+    "runtime"
     _ "github.com/lib/pq"
     "io/ioutil"
     "strconv"
@@ -457,6 +458,7 @@ func flagSort(db *sql.DB, scheduler sched.Scheduler) {
                 scheduler.RequestComparison(request)
                 for scheduler.HasRequest(request) {
                     // no-op
+                    runtime.Gosched()
                 }
                 cmp = things.GetComparison(db, left, pivot)
             }
