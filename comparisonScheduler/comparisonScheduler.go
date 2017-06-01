@@ -85,6 +85,7 @@ func (this *Scheduler) NextRequest() *things.IDPair {
     fmt.Println("getting the next request...")
 
     if this.requests == nil {
+        fmt.Println("returning [nil]")
         return nil
     }
 
@@ -92,6 +93,7 @@ func (this *Scheduler) NextRequest() *things.IDPair {
     this.rmRequest(ids)
     this.appendRequest(ids)
 
+    fmt.Printf("returning {Fst: %d, Snd: %d}\n", int(ids.Fst), int(ids.Snd))
     return &ids
 }
 
