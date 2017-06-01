@@ -141,3 +141,17 @@ func GetAll(db *sql.DB) []User {
 
     return users
 }
+
+func (this *User) SubmitVote(db *sql.DB, winner things.ID, loser things.ID) {
+    query := `INSERT INTO votes ("user", winner, loser) VALUES ($1, $2, $3)`
+    _, err := db.Exec(query, this.Id, winner, loser)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    /// TODO: move bumpExposure into this function
+
+    /// TODO: move the code to adjust comparisons into this function
+
+    return
+}

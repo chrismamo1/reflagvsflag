@@ -60,7 +60,7 @@ func initDb() *sql.DB {
         FOREIGN KEY ("user") REFERENCES users(id),
         FOREIGN KEY (image) REFERENCES images(id));
     CREATE TABLE IF NOT EXISTS votes (
-        id INTEGER PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         "user" INT NOT NULL,
         winner INT NOT NULL,
         loser INT NOT NULL,
@@ -143,6 +143,8 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
 
         bumpExposure(user, things.ID(winner))
         bumpExposure(user, things.ID(loser))
+
+        user.SubmitVote(db, things.ID(winner), things.ID(loser))
 
         ids.Fst = things.ID(winner)
         ids.Snd = things.ID(loser)
