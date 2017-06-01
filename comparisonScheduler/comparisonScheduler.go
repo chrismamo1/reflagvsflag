@@ -20,14 +20,19 @@ func (this *Scheduler) hasAnyRequests() bool {
     return status
 }
 
-func (this *Scheduler) appendRequest(ids things.IDPair) {
-    placement := 0
+func (this *Scheduler) getMaxPlacement() {
+    placement := -1
     if this.hasAnyRequests() {
         query := `select MAX(placement) FROM scheduler`
         if err := this.db.QueryRow(query).Scan(&placement); err != nil {
             log.Fatal("Error while getting the max placement from the scheduler while appending a request: ", err)
         }
     }
+    return placement
+}
+
+func (this *Scheduler) appendRequest(ids things.IDPair) {
+    placement := getMaxPlacement() + 1
     statement := `
         INSERT INTO scheduler (fst, snd, placement)
             VALUES
@@ -87,8 +92,9 @@ func (this *Scheduler) NextRequest() *things.IDPair {
         log.Fatal("Error while selecting the highest priority scheduling request: ", err)
     }
 
-    statement := `UPDATE scheduler SET placement = ((SELECT MAX(placement)) + 1) WHERE id = $1`
-    if _, err := this.db.Exec(statement, id); err != nil {
+    placement := this.getMaxPlacement() + 1
+    statement := `UPDATE scheduler SET placement = $1 WHERE id = $2`
+    if _, err := this.db.Exec(statement, placement, id); err != nil {
         log.Fatal("Error while moving a scheduling request to the back of the queue: ", err)
     }
 
