@@ -84,12 +84,12 @@ func renderVotes(votes []vote) string {
 /// TODO: finish this
 func (this *User) Render(db *sql.DB, className string) string {
     format := `
-        <div class='{{.className}}'>
-            <h1>ID: {{.id}}</h1>
-            <h2>IP Address: {{.addr}}</h2>
+        <div class='{{.ClassName}}'>
+            <h1>ID: {{.Id}}</h1>
+            <h2>IP Address: {{.Addr}}</h2>
             <div>
                 <h1>Votes:</h1>
-                {{.renderedVotes}}
+                {{.RenderedVotes}}
             </div>
         </div>
     `
@@ -101,11 +101,11 @@ func (this *User) Render(db *sql.DB, className string) string {
     renderedVotes := renderVotes(this.GetVotes(db))
 
     params := struct {
-        className string
-        addr string
-        renderedVotes string
-        id ID
-    } {className: className, addr: this.Addr, id: this.Id, renderedVotes: renderedVotes}
+        ClassName string
+        Addr string
+        RenderedVotes string
+        Id ID
+    } {ClassName: className, Addr: this.Addr, Id: this.Id, RenderedVotes: renderedVotes}
 
     buffer := bytes.NewBufferString("")
 
