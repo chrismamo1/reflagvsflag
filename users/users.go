@@ -29,7 +29,13 @@ func GetByAddr(db *sql.DB, addr string) *User {
     u := new(User)
     err := db.QueryRow("SELECT id, ip_addr FROM users WHERE ip_addr = $1", addr).Scan(&u.Id, &u.Addr)
     if err != nil {
-        return nil
+        // user doesn't exist yet, we can remedy this
+        fmt.Println("creating a new user because we failed at trying to get it...\n")
+        _, err := db.Exec("INSERT INTO users (ip_addr) VALUES ($1)", addr)
+        if err != nil {
+            log.Fatal(err)
+        }
+        return GetByAddr(db, addr)
     }
     return u
 }
