@@ -368,14 +368,9 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
 
         iCenter := (iLeft + iRight) / 2
 
-        queueUpComparisons := func(iLeft int, iRight int) {
-            iPivot := (iLeft + iRight) / 2
-            for iLeft < iRight {
+        refreshAll := func(iLeft int, iPivot int, iRight int) things.ID, things.ID, things.ID {
                 var left, pivot, right things.ID
-                if iLeft == iPivot {
-                    iLeft = iLeft + 1
-                    continue
-                }
+
                 if err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iLeft).Scan(&left); err != nil {
                     log.Fatal(err)
                 }
@@ -384,6 +379,24 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                 }
                 if err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iRight).Scan(&right); err != nil {
                     log.Fatal(err)
+                }
+
+                return left, pivot, right
+        }
+
+        queueUpComparisons := func(iLeft int, iRight int) {
+            l := iLeft
+            r := iRight
+            iPivot := (iLeft + iRight) / 2
+            _, oldPivot, oldRight := refreshAll(iLeft, iRight, iPivot)
+            for iLeft < iRight {
+                if iLeft == iPivot {
+                    iLeft = iLeft + 1
+                    continue
+                }
+                left, pivot, right := refreshAll(iLeft, iPivot, iRight)
+                if right != oldRight || pivot != oldPivot {
+                    iLeft = l
                 }
                 request := things.IDPair{Fst: left, Snd: pivot}
                 scheduler.RequestComparison(request)
