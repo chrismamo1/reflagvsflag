@@ -85,6 +85,8 @@ func (this *Scheduler) RequestComparison(ids things.IDPair) {
     this.mux.Lock()
     defer this.mux.Unlock()
 
+    fmt.Printf("Requesting a comparison between {Fst: %d, Snd: %d}\n", ids.Fst, ids.Snd)
+
     if !this.hasRequest(ids) {
         this.addRequest(ids)
         if !this.hasRequest(ids) {
