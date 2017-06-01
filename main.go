@@ -614,7 +614,7 @@ func main() {
         ReadTimeout:    15 * time.Second,
     }
 
-    r.HandleFunc("/index", IndexHandler(db))
+    r.HandleFunc("/index", IndexHandler)
     r.HandleFunc("/ranks", RanksHandler(db))
     r.HandleFunc("/users", UsersHandler(db))
     r.HandleFunc("/judge", JudgeHandler(db, imageComparisonRequests, imageComparisonResponses))
