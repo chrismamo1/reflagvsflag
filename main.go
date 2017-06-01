@@ -117,7 +117,7 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
         COMMIT;
         `
         if _, err := db.Exec(query, user.Id, winner, user.Id, winner, user.Id, winner); err != nil {
-            log.Fatal(err)
+            log.Fatal("problem updating/modifying exposure table: ", err)
         }
         if _, err := db.Exec(query, user.Id, loser, user.Id, loser, user.Id, loser); err != nil {
             log.Fatal(err)
