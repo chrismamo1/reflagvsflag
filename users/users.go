@@ -7,6 +7,7 @@ import (
     "database/sql"
     "github.com/chrismamo1/reflagvsflag/things"
     "log"
+    "strings"
     //"html/template"
     _ "github.com/lib/pq")
 
@@ -26,6 +27,9 @@ type vote struct {
 }
 
 func GetByAddr(db *sql.DB, addr string) *User {
+    if strings.Index(addr, ":") != -1 {
+        addr = addr[0:strings.Index(addr,":")]
+    }
     u := new(User)
     err := db.QueryRow("SELECT id, ip_addr FROM users WHERE ip_addr = $1", addr).Scan(&u.Id, &u.Addr)
     if err != nil {
