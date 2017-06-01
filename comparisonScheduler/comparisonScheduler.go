@@ -93,6 +93,9 @@ func (this *Scheduler) FillRequest(ids things.IDPair) {
 
     if this.hasRequest(ids) {
         this.rmRequest(ids)
+        if this.hasRequest(ids) {
+            log.Fatal(errors.New("rmRequest doesn't work"))
+        }
     }
 }
 
