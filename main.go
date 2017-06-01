@@ -368,7 +368,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
 
         iCenter := (iLeft + iRight) / 2
 
-        refreshAll := func(iLeft int, iPivot int, iRight int) things.ID, things.ID, things.ID {
+        refreshAll := func(iLeft int, iPivot int, iRight int) (things.ID, things.ID, things.ID) {
                 var left, pivot, right things.ID
 
                 if err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iLeft).Scan(&left); err != nil {
@@ -386,7 +386,6 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
 
         queueUpComparisons := func(iLeft int, iRight int) {
             l := iLeft
-            r := iRight
             iPivot := (iLeft + iRight) / 2
             _, oldPivot, oldRight := refreshAll(iLeft, iRight, iPivot)
             for iLeft < iRight {
