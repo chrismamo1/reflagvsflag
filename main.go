@@ -366,6 +366,38 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
         }
         defer finalize()
 
+        iCenter := (iLeft + iRight) / 2
+
+        queueUpComparisons := func(iLeft int, iRight int) {
+            iPivot := (iLeft + iRight) / 2
+            for iLeft < iRight {
+                var left, pivot, right things.ID
+                if iLeft == iPivot {
+                    iLeft = iLeft + 1
+                    continue
+                }
+                if err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iLeft).Scan(&left); err != nil {
+                    log.Fatal(err)
+                }
+                if err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iPivot).Scan(&pivot); err != nil {
+                    log.Fatal(err)
+                }
+                if err := db.QueryRow("SELECT id FROM images WHERE img_index = $1", iRight).Scan(&right); err != nil {
+                    log.Fatal(err)
+                }
+                request := things.IDPair{Fst: left, Snd: pivot}
+                scheduler.RequestComparison(request)
+                for scheduler.HasRequest(request) {
+                    // no-op
+                    runtime.Gosched()
+                    time.Sleep(time.Duration(50) * time.Millisecond)
+                }
+            }
+        }
+
+        queueUpComparisons(iLeft, iCenter)
+        queueUpComparisons(iCenter + 1, iRight)
+
         // wait
         <-readyToStart
 
@@ -408,8 +440,6 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
 
         readyForLeft := make(chan bool)
         readyForRight := make(chan bool)
-
-        iCenter := (iLeft + iRight) / 2
 
         isDoneLeft := make(chan bool)
         go quickSort(iLeft, iCenter, readyForLeft, isDoneLeft)
@@ -459,7 +489,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                 for scheduler.HasRequest(request) {
                     // no-op
                     runtime.Gosched()
-                    time.Sleep(time.Duration(500) * time.Millisecond)
+                    time.Sleep(time.Duration(50) * time.Millisecond)
                 }
                 cmp = things.GetComparison(db, left, pivot)
             }
