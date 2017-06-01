@@ -76,7 +76,7 @@ func (this *Scheduler) NextRequest() *things.IDPair {
 
 func Make(db *sql.DB) *Scheduler {
     statement := `
-        CREATE TEMPORARY TABLE IF NOT EXISTS scheduler (
+        CREATE TEMPORARY TABLE scheduler (
             id SERIAL PRIMARY KEY,
             fst INT NOT NULL,
             snd INT NOT NULL,
