@@ -59,7 +59,10 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
         if n.x.Equivalent(ids) {
             prev.next = n.next
             prev = prev.next
-            if prev == nil || prev.next == nil {
+            if prev == nil {
+                return
+            }
+            if prev.next == nil {
                 return
             }
             n = prev.next
