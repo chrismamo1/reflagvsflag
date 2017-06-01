@@ -37,12 +37,20 @@ func (this *Scheduler) addRequest(ids things.IDPair) {
 }
 
 func (this *Scheduler) rmRequest(ids things.IDPair) {
-    for n := this.requests; n != nil; n = n.next {
+    if this.requests == nil {
+        return
+    }
+    prev := this.requests
+    n := prev.next
+    for n != nil {
         if n.x.Equivalent(ids) {
-            *n = *(n.next)
+            prev.next = n.next
             return
         }
+        n = n.next
+        prev = prev.next
     }
+    return
 }
 
 func (this *Scheduler) hasRequest(ids things.IDPair) bool {
@@ -92,7 +100,7 @@ func (this *Scheduler) NextRequest() *things.IDPair {
     this.mux.Lock()
     defer this.mux.Unlock()
 
-    //fmt.Println("getting the next request...")
+    fmt.Println("getting the next request...")
 
     if this.requests == nil {
         fmt.Println("returning [nil]")
