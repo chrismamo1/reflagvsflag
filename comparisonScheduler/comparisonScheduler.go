@@ -107,6 +107,10 @@ func (this *Scheduler) NextRequest() *things.IDPair {
     return &ids
 }
 
+func Make() *Scheduler {
+    return &Scheduler{}
+}
+
 /*func (this *Scheduler) addSatisfaction(ids things.IDPair) {
     n := &node{x: ids, next: this.satisfactions}
     this.requests = n

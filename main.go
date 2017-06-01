@@ -101,7 +101,7 @@ func loadImageStore(db *sql.DB) []things.Thing {
     return imageStore
 }
 
-func VoteHandler(db *sql.DB, scheduler sched.Scheduler) func(http.ResponseWriter, *http.Request) {
+func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
         var ids things.IDPair
         winner, _ := strconv.Atoi(req.FormValue("winner"))
@@ -252,7 +252,7 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
     }
 }
 
-func JudgeHandler(db *sql.DB, scheduler sched.Scheduler) func(http.ResponseWriter, *http.Request) {
+func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
         var ids *things.IDPair
         for ids == nil {
@@ -333,7 +333,7 @@ func refreshImages(db *sql.DB) {
     }
 }
 
-func flagSort(db *sql.DB, scheduler sched.Scheduler) {
+func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
     var left, pivot, right int
 
     err := db.QueryRow("SELECT img_index FROM images ORDER BY img_index ASC LIMIT 1").Scan(&left)
@@ -588,7 +588,8 @@ func flagSort(db *sql.DB, scheduler sched.Scheduler) {
 }
 
 func main() {
-    var scheduler sched.Scheduler
+    var scheduler *sched.Scheduler
+    scheduler = sched.Make()
     fmt.Println("About to initialize the database")
     db := initDb()
     defer fmt.Println("Closing shit")
