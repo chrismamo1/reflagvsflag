@@ -68,6 +68,9 @@ func (this *Scheduler) RequestComparison(ids things.IDPair) {
 
     if !this.hasRequest(ids) {
         this.addRequest(ids)
+        if !this.hasRequest(ids) {
+            log.Fatal(errors.New("something is horribly wrong with the scheduler"))
+        }
     }
 }
 
