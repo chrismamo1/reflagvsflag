@@ -81,10 +81,7 @@ func Make(db *sql.DB) *Scheduler {
             fst INT NOT NULL,
             snd INT NOT NULL,
             placement INT NOT NULL,
-            CHECK (fst <> snd),
-            CHECK (EXISTS (SELECT * FROM images WHERE id = fst LIMIT 1)),
-            CHECK (EXISTS (SELECT * FROM images WHERE id = snd LIMIT 1))
-        );
+            CHECK (fst <> snd));
     `
 
     if _, err := db.Exec(statement); err != nil {
