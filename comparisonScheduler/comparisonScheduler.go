@@ -83,7 +83,7 @@ func Make(db *sql.DB) *Scheduler {
             placement INT NOT NULL,
             FOREIGN KEY (fst) REFERENCES images(id),
             FOREIGN KEY (snd) REFERENCES images(id),
-            CHECK fst <> snd
+            CHECK (fst <> snd)
         );
     `
 
