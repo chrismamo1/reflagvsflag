@@ -31,6 +31,7 @@ func (this *Scheduler) appendRequest(ids things.IDPair) {
 }
 
 func (this *Scheduler) addRequest(ids things.IDPair) {
+    fmt.Println("adding a request...")
     n := &node{x: ids, next: this.requests}
     this.requests = n
 }
