@@ -64,6 +64,7 @@ func initDb() *sql.DB {
         "user" INT NOT NULL,
         winner INT NOT NULL,
         loser INT NOT NULL,
+        submitted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
         FOREIGN KEY ("user") REFERENCES users(id),
         FOREIGN KEY (winner) REFERENCES images(id),
         FOREIGN KEY (loser) REFERENCES images(id),
@@ -194,6 +195,33 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
         for i := 0; i < len(store); i = i + 1 {
             els += fmt.Sprintf("<li>%s</li>", things.RenderSmall(store[i]))
+        }
+
+        page = fmt.Sprintf(page, els);
+
+        writer.Write([]byte(page))
+    }
+}
+
+func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
+    return func(writer http.ResponseWriter, req *http.Request) {
+        page := `
+        <html>
+            <head></head>
+            <body>
+                <ol>
+                    %s
+                </ol>
+            </body>
+        </html>
+        `
+
+        els := ""
+
+        allUsers := users.GetAll(db)
+
+        for i := 0; i < len(allUsers); i = i + 1 {
+            els += fmt.Sprintf("<li>%s</li>", allUsers[i].Render(db, "reFlagVsFlag_user"))
         }
 
         page = fmt.Sprintf(page, els);
@@ -558,6 +586,7 @@ func main() {
     }
 
     r.HandleFunc("/ranks", RanksHandler(db))
+    r.HandleFunc("/users", UsersHandler(db))
     r.HandleFunc("/judge", JudgeHandler(db, imageComparisonRequests, imageComparisonResponses))
     r.HandleFunc("/vote", VoteHandler(db, imageComparisonResponses))
     r.HandleFunc("/shutdown", ShutdownHandler(srv, db))
