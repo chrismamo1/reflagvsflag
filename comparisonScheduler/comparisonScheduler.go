@@ -20,7 +20,7 @@ func (this *Scheduler) hasAnyRequests() bool {
     return status
 }
 
-func (this *Scheduler) getMaxPlacement() {
+func (this *Scheduler) getMaxPlacement() int {
     placement := -1
     if this.hasAnyRequests() {
         query := `select MAX(placement) FROM scheduler`
@@ -32,7 +32,7 @@ func (this *Scheduler) getMaxPlacement() {
 }
 
 func (this *Scheduler) appendRequest(ids things.IDPair) {
-    placement := getMaxPlacement() + 1
+    placement := this.getMaxPlacement() + 1
     statement := `
         INSERT INTO scheduler (fst, snd, placement)
             VALUES
