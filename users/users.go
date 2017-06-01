@@ -60,7 +60,7 @@ func (this *User) GetVotes(db *sql.DB) []vote {
 }
 
 func renderVotes(votes []vote) string {
-    buffer := "<table><tbody>"
+    buffer := "<div><table><tbody>"
     buffer += `
         <tr>
             <td>ID</td>
@@ -83,7 +83,7 @@ func renderVotes(votes []vote) string {
         buffer += el
     }
 
-    buffer += "</tbody></table>"
+    buffer += "</tbody></table></div>"
     return buffer
 }
 
