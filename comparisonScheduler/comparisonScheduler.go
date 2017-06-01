@@ -40,13 +40,13 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
     if this.requests == nil {
         return
     }
-    var prev *node
-    prev = this.requests
-    if prev.x.Equivalent(ids) {
+    if this.requests.x.Equivalent(ids) {
         fmt.Println("rmRequest found it in the prelude")
-        this.requests = prev.next
+        this.requests = this.requests.next
         return
     }
+    var prev *node
+    prev = this.requests
     n := prev.next
     for n != nil {
         if n.x.Equivalent(ids) {
