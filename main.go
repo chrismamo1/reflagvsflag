@@ -13,7 +13,7 @@ import (
     "strconv"
     "github.com/chrismamo1/reflagvsflag/things"
     "github.com/chrismamo1/reflagvsflag/users"
-    scheduler "github.com/chrismamo1/reflagvsflag/comparisonScheduler")
+    sched "github.com/chrismamo1/reflagvsflag/comparisonScheduler")
 
 func initDb() *sql.DB {
     dbParams := os.ExpandEnv("user=db_master dbname=reflagvsflag_db sslmode=disable password=${REFLAGVSFLAG_DB_PASSWORD} host=${REFLAGVSFLAG_DB_HOST}")
@@ -100,7 +100,7 @@ func loadImageStore(db *sql.DB) []things.Thing {
     return imageStore
 }
 
-func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter, *http.Request) {
+func VoteHandler(db *sql.DB, scheduler sched.Scheduler) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
         var ids things.IDPair
         winner, _ := strconv.Atoi(req.FormValue("winner"))
@@ -193,7 +193,7 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
         <h1>Thanks for voting!</h1>
         `
         writer.Write([]byte(page))
-        resps <- ids
+        scheduler.FillRequest(ids)
     }
 }
 
@@ -251,24 +251,13 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
     }
 }
 
-func JudgeHandler(db *sql.DB, reqs chan things.IDPair, resps chan things.IDPair) func(http.ResponseWriter, *http.Request) {
+func JudgeHandler(db *sql.DB, scheduler sched.Scheduler) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
-        var ids things.IDPair
-RETRY:
-        select {
-        case some_ids := <-reqs:
-            ids = some_ids
-        default:
-            /*var some_ids things.IDPair
-            fmt.Println("JudgeHandler is responding with a -1 pair")
-            some_ids.Fst = -1
-            some_ids.Snd = -1
-            fmt.Println("-1 pair about to send")
-            resps <- some_ids
-            fmt.Println("-1 pair sent")*/
-            goto RETRY
+        var ids *things.IDPair
+        for ids == nil {
+            ids = scheduler.NextRequest()
         }
-        left, right := things.SelectImages(db, ids)
+        left, right := things.SelectImages(db, *ids)
         page := `
         <h1>Which of these flags is better?</h1>
         <a href="/vote?winner=%d&loser=%d">
@@ -343,7 +332,7 @@ func refreshImages(db *sql.DB) {
     }
 }
 
-func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
+func flagSort(db *sql.DB, scheduler sched.Scheduler) {
     var left, pivot, right int
 
     err := db.QueryRow("SELECT img_index FROM images ORDER BY img_index ASC LIMIT 1").Scan(&left)
@@ -464,10 +453,11 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
 
             fmt.Printf("\tMight need a stronger comparison for %d and %d\n", request.Fst, request.Snd)
             for cmp * cmp < 4 {
-                random := things.GetRandomPair(db)
-                go scheduler.RequestComparison(random, req, resp)
                 fmt.Printf("Need a stronger comparison for %d and %d\n", request.Fst, request.Snd)
-                scheduler.RequestComparison(request, req, resp)
+                scheduler.RequestComparison(request)
+                for scheduler.HasRequest(request) {
+                    // no-op
+                }
                 cmp = things.GetComparison(db, left, pivot)
             }
 
@@ -496,7 +486,7 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
                 request.Fst = newPivot
                 request.Snd = rando
 
-                scheduler.RequestComparison(request, req, resp)
+                scheduler.RequestComparison(request)
             }
             // if we're below the pivot of the right child, start working on its comparisons
             if r < (iRight + (iCenter + 1)) / 2 && !startedRight {
@@ -523,7 +513,7 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
                 request.Fst = newPivot
                 request.Snd = rando
 
-                scheduler.RequestComparison(request, req, resp)
+                scheduler.RequestComparison(request)
             }
 
             if cmp >= 0 { // images[left] > images[pivot]
@@ -590,18 +580,19 @@ func flagSort(db *sql.DB, req chan things.IDPair, resp chan things.IDPair) {
         fmt.Println("\tisDone reported something fucky")
     }
 
-    flagSort(db, req, resp)
+    flagSort(db, scheduler)
     return
 }
 
 func main() {
+    var scheduler sched.Scheduler
     fmt.Println("About to initialize the database")
     db := initDb()
     defer fmt.Println("Closing shit")
     defer db.Close()
 
-    imageComparisonRequests := make(chan things.IDPair)
-    imageComparisonResponses := make(chan things.IDPair)
+    //imageComparisonRequests := make(chan things.IDPair)
+    //imageComparisonResponses := make(chan things.IDPair)
 
     fmt.Println("About to refresh images")
     refreshImages(db)
@@ -621,12 +612,12 @@ func main() {
     r.HandleFunc("/", IndexHandler)
     r.HandleFunc("/ranks", RanksHandler(db))
     r.HandleFunc("/users", UsersHandler(db))
-    r.HandleFunc("/judge", JudgeHandler(db, imageComparisonRequests, imageComparisonResponses))
-    r.HandleFunc("/vote", VoteHandler(db, imageComparisonResponses))
+    r.HandleFunc("/judge", JudgeHandler(db, scheduler))
+    r.HandleFunc("/vote", VoteHandler(db, scheduler))
     r.HandleFunc("/shutdown", ShutdownHandler(srv, db))
     r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 
-    go flagSort(db, imageComparisonRequests, imageComparisonResponses)
+    go flagSort(db, scheduler)
 
     fmt.Println("About to ListenAndServe")
     srv.ListenAndServe()

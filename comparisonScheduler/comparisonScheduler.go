@@ -1,16 +1,143 @@
 package comparisonScheduler
 
 import (
+    "sync"
     "github.com/chrismamo1/reflagvsflag/things")
 
-func RequestComparison(ids things.IDPair, reqs chan things.IDPair, resps chan things.IDPair) {
-    reqs <- ids
-    <-resps
+type node struct {
+    x things.IDPair
+    next *node
 }
+
+type Scheduler struct {
+    requests *node
+    //satisfactions *node
+    mux sync.Mutex
+}
+
+func (this *Scheduler) appendRequest(ids things.IDPair) {
+    if this.requests == nil {
+        this.requests = &node{x: ids, next: nil}
+    }
+    var n *node
+    for n = this.requests; n.next != nil; n = n.next {
+        // no-op
+    }
+    n.next = &node{x: ids, next: nil}
+    return
+}
+
+func (this *Scheduler) addRequest(ids things.IDPair) {
+    n := &node{x: ids, next: this.requests}
+    this.requests = n
+}
+
+func (this *Scheduler) rmRequest(ids things.IDPair) {
+    for n := this.requests; n != nil; n = n.next {
+        if n.x.Equivalent(ids) {
+            *n = *(n.next)
+            return
+        }
+    }
+}
+
+func (this *Scheduler) HasRequest(ids things.IDPair) bool {
+    for n := this.requests; n != nil; n = n.next {
+        if n.x.Equivalent(ids) {
+            return true
+        }
+    }
+    return false
+}
+
+func (this *Scheduler) RequestComparison(ids things.IDPair) {
+    this.mux.Lock()
+    defer this.mux.Unlock()
+
+    if !this.HasRequest(ids) {
+        this.addRequest(ids)
+    }
+}
+
+func (this *Scheduler) FillRequest(ids things.IDPair) {
+    this.mux.Lock()
+    defer this.mux.Unlock()
+
+    if this.HasRequest(ids) {
+        this.rmRequest(ids)
+    }
+}
+
+func (this *Scheduler) NextRequest() *things.IDPair {
+    this.mux.Lock()
+    defer this.mux.Unlock()
+
+    if this.requests == nil {
+        return nil
+    }
+
+    ids := this.requests.x
+    this.rmRequest(ids)
+    this.appendRequest(ids)
+
+    return &ids
+}
+
+/*func (this *Scheduler) addSatisfaction(ids things.IDPair) {
+    n := &node{x: ids, next: this.satisfactions}
+    this.requests = n
+}
+
+func (this *Scheduler) AddSatisfaction(ids things.IDPair) {
+    this.mux.Lock()
+    defer this.mux.Unlock()
+
+    this.addSatisfaction(ids)
+}
+
+func (this *Scheduler) rmSatisfaction(ids things.IDPair) {
+    for n := this.satisfactions; n != nil; n = n.next {
+        if n.x.Equivalent(ids) {
+            *n = n->next
+        }
+    }
+}
+
+func (this *Scheduler) RmSatisfaction(ids things.IDPair) {
+    this.mux.Lock()
+    defer this.mux.Unlock()
+
+    this.rmSatisfaction(ids)
+}
+
+func (this *Scheduler) HasSatisfaction(ids things.IDPair) bool {
+    this.mux.Lock()
+    defer this.mux.Unlock()
+
+    for n := this.satisfactions; n != nil; n = n.next {
+        if n.x.Equivalent(ids) {
+            return true
+        }
+    }
+    return false
+}
+
+func (this *Scheduler) NextRequest() {
+    if this.requests == nil {
+        if this.satisfactions != nil {
+            this.addRequest(this.satisfactions.x)
+        }
+    } else {
+        ids := this.requests.x
+        this.rmRequest(ids)
+        this.addSatisfaction(ids)
+    }
+}*/
 
 /*type sorter struct {
     reqs chan things.IDPair
     last things.IDPair
+    '
     resps
 }
 
