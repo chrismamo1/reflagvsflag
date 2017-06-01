@@ -41,14 +41,18 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
         return
     }
     prev := this.requests
+    if prev.x.Equivalent(ids) {
+        this.requests = prev.next
+        return
+    }
     n := prev.next
     for n != nil {
         if n.x.Equivalent(ids) {
             prev.next = n.next
             return
         }
-        n = n.next
         prev = prev.next
+        n = prev.next
     }
     return
 }
