@@ -12,7 +12,7 @@ type Scheduler struct {
 }
 
 func (this *Scheduler) appendRequest(ids things.IDPair) {
-    statement := `INSERT INTO scheduler (fst, snd, placement) VALUES ($1, $2, ((SELECT MAX(placement)) + 1))`
+    statement := `INSERT INTO scheduler (fst, snd, placement) VALUES ($1, $2, ((SELECT MAX(placement) FROM scheduler) + 1))`
     if _, err := this.db.Exec(statement, ids.Fst, ids.Snd); err != nil {
         log.Fatal("Error while requesting a comparison: ", err)
     }
