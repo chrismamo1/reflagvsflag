@@ -265,7 +265,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
     return func(writer http.ResponseWriter, req *http.Request) {
         var ids *things.IDPair
         for ids == nil {
-            ids = scheduler.NextRequest(users.GetByAddr(db, req.RemoteAddr))
+            ids = scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr))
         }
         left, right := things.SelectImages(db, *ids)
         page := `
