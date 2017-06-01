@@ -453,7 +453,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
             cmp := things.GetComparison(db, left, pivot)
 
             fmt.Printf("\tMight need a stronger comparison for %d and %d\n", request.Fst, request.Snd)
-            for cmp * cmp < 4 {
+            for cmp * cmp < 1 {
                 fmt.Printf("Need a stronger comparison for %d and %d\n", request.Fst, request.Snd)
                 scheduler.RequestComparison(request)
                 for scheduler.HasRequest(request) {
