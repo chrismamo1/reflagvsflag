@@ -391,11 +391,12 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                     // no-op
                     runtime.Gosched()
                 }
+                iLeft = iLeft + 1
             }
         }
 
-        queueUpComparisons(iLeft, iCenter)
-        queueUpComparisons(iCenter + 1, iRight)
+        go queueUpComparisons(iLeft, iCenter)
+        go queueUpComparisons(iCenter + 1, iRight)
 
         // wait
         <-readyToStart
