@@ -1,105 +1,53 @@
 package comparisonScheduler
 
 import (
+    "database/sql"
     "errors"
-    "fmt"
     "log"
-    "sync"
-    "github.com/chrismamo1/reflagvsflag/things")
-
-type node struct {
-    x things.IDPair
-    next *node
-}
+    "github.com/chrismamo1/reflagvsflag/things"
+    _ "github.com/lib/pq")
 
 type Scheduler struct {
-    requests *node
-    //satisfactions *node
-    mux sync.Mutex
+    db *sql.DB
 }
 
 func (this *Scheduler) appendRequest(ids things.IDPair) {
-    if this.requests == nil {
-        this.requests = &node{x: ids, next: nil}
+    statement := `INSERT INTO scheduler (fst, snd, placement) VALUES ($1, $2, ((SELECT MAX(placement)) + 1))`
+    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd); err != nil {
+        log.Fatal("Error while requesting a comparison: ", err)
     }
-    var n *node
-    for n = this.requests; n.next != nil; n = n.next {
-        // no-op
-    }
-    n.next = &node{x: ids, next: nil}
     return
-}
-
-func (this *Scheduler) addRequest(ids things.IDPair) {
-    n := &node{x: ids, next: this.requests}
-    this.requests = n
 }
 
 func (this *Scheduler) hasRequest(ids things.IDPair) bool {
-    for n := this.requests; n != nil; n = n.next {
-        if n.x.Equivalent(ids) {
-            return true
-        }
+    var status bool
+    query := `SELECT EXISTS(SELECT * FROM scheduler WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1) LIMIT 1)`
+    if err := this.db.QueryRow(query, ids.Fst, ids.Snd).Scan(&status); err != nil {
+        log.Fatal("Error while trying to determine if the scheduler contains a request: ", err)
     }
-    return false
+    return status
 }
 
 func (this *Scheduler) rmRequest(ids things.IDPair) {
-    if this.requests == nil {
-        return
+    statement := `DELETE FROM scheduler WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1)`
+    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd); err != nil {
+        log.Fatal("Error while trying to delete a scheduler request: ", err)
     }
-    if this.requests.x.Equivalent(ids) {
-        this.requests = this.requests.next
-        this.rmRequest(ids)
-        return
-    }
-    var prev *node
-    prev = this.requests
-    n := prev.next
-    for n != nil {
-        if n.x.Equivalent(ids) {
-            prev.next = n.next
-            prev = prev.next
-            if prev == nil {
-                return
-            }
-            if prev.next == nil {
-                return
-            }
-            n = prev.next
-            continue
-        }
-        prev = n
-        n = n.next
-    }
-    return
 }
 
 func (this *Scheduler) HasRequest(ids things.IDPair) bool {
-    this.mux.Lock()
-    defer this.mux.Unlock()
-
     return this.hasRequest(ids)
 }
 
 func (this *Scheduler) RequestComparison(ids things.IDPair) {
-    this.mux.Lock()
-    defer this.mux.Unlock()
-
-    fmt.Printf("Requesting a comparison between {Fst: %d, Snd: %d}\n", int(ids.Fst), int(ids.Snd))
+    this.appendRequest(ids)
 
     if !this.hasRequest(ids) {
-        this.appendRequest(ids)
-        if !this.hasRequest(ids) {
-            log.Fatal(errors.New("something is horribly wrong with the scheduler"))
-        }
+        log.Fatal(errors.New("something is horribly wrong with the scheduler"))
     }
 }
 
 func (this *Scheduler) FillRequest(ids things.IDPair) {
-    this.mux.Lock()
-    defer this.mux.Unlock()
-
     if this.hasRequest(ids) {
         this.rmRequest(ids)
         if this.hasRequest(ids) {
@@ -109,21 +57,41 @@ func (this *Scheduler) FillRequest(ids things.IDPair) {
 }
 
 func (this *Scheduler) NextRequest() *things.IDPair {
-    this.mux.Lock()
-    defer this.mux.Unlock()
+    var ids things.IDPair
+    var id int
 
-    if this.requests == nil {
-        return nil
+    query := "SELECT id, fst, snd FROM scheduler ORDER BY placement ASC LIMIT 1"
+
+    if err := this.db.QueryRow(query).Scan(&id, &ids.Fst, &ids.Snd); err != nil {
+        log.Fatal("Error while selecting the highest priority scheduling request: ", err)
     }
 
-    ids := this.requests.x
-    this.rmRequest(ids)
-    this.appendRequest(ids)
+    statement := `UPDATE scheduler SET placement = ((SELECT MAX(placement)) + 1) WHERE id = $1`
+    if _, err := this.db.Exec(statement, id); err != nil {
+        log.Fatal("Error while moving a scheduling request to the back of the queue: ", err)
+    }
+
     return &ids
 }
 
-func Make() *Scheduler {
-    return &Scheduler{requests: nil}
+func Make(db *sql.DB) *Scheduler {
+    statement := `
+        CREATE TEMPORARY TABLE IF NOT EXISTS scheduler (
+            id SERIAL PRIMARY KEY,
+            fst INT NOT NULL,
+            snd INT NOT NULL,
+            placement INT NOT NULL,
+            FOREIGN KEY (fst) REFERENCES images(id),
+            FOREIGN KEY (snd) REFERENCES images(id),
+            CHECK NOT(fst = snd)
+        );
+    `
+
+    if _, err := db.Exec(statement); err != nil {
+        log.Fatal("Error while making the temporary scheduling table: ", err)
+    }
+
+    return &Scheduler{db: db}
 }
 
 /*func (this *Scheduler) addSatisfaction(ids things.IDPair) {

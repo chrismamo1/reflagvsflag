@@ -629,12 +629,12 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
 }
 
 func main() {
-    var scheduler *sched.Scheduler
-    scheduler = sched.Make()
     fmt.Println("About to initialize the database")
     db := initDb()
     defer fmt.Println("Closing shit")
     defer db.Close()
+
+    scheduler := sched.Make(db)
 
     //imageComparisonRequests := make(chan things.IDPair)
     //imageComparisonResponses := make(chan things.IDPair)
