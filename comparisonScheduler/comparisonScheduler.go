@@ -89,7 +89,7 @@ func (this *Scheduler) RequestComparison(ids things.IDPair) {
     fmt.Printf("Requesting a comparison between {Fst: %d, Snd: %d}\n", int(ids.Fst), int(ids.Snd))
 
     if !this.hasRequest(ids) {
-        this.addRequest(ids)
+        this.appendRequest(ids)
         if !this.hasRequest(ids) {
             log.Fatal(errors.New("something is horribly wrong with the scheduler"))
         }
