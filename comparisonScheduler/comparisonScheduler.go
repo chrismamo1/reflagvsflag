@@ -19,7 +19,6 @@ type Scheduler struct {
 }
 
 func (this *Scheduler) appendRequest(ids things.IDPair) {
-    fmt.Println("appending a request...")
     if this.requests == nil {
         this.requests = &node{x: ids, next: nil}
     }
@@ -32,7 +31,6 @@ func (this *Scheduler) appendRequest(ids things.IDPair) {
 }
 
 func (this *Scheduler) addRequest(ids things.IDPair) {
-    fmt.Println("adding a request...")
     n := &node{x: ids, next: this.requests}
     this.requests = n
 }
@@ -51,7 +49,6 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
         return
     }
     if this.requests.x.Equivalent(ids) {
-        fmt.Println("rmRequest found it in the prelude")
         this.requests = this.requests.next
         this.rmRequest(ids)
         return
@@ -61,7 +58,6 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
     n := prev.next
     for n != nil {
         if n.x.Equivalent(ids) {
-            fmt.Println("rmRequest found it in the actual loop")
             prev.next = n.next
             prev = prev.next
             if prev.next == nil {
@@ -80,16 +76,12 @@ func (this *Scheduler) HasRequest(ids things.IDPair) bool {
     this.mux.Lock()
     defer this.mux.Unlock()
 
-    fmt.Println("checking on a request...")
-
     return this.hasRequest(ids)
 }
 
 func (this *Scheduler) RequestComparison(ids things.IDPair) {
     this.mux.Lock()
     defer this.mux.Unlock()
-
-    fmt.Println("making a request...")
 
     if !this.hasRequest(ids) {
         this.addRequest(ids)
@@ -103,8 +95,6 @@ func (this *Scheduler) FillRequest(ids things.IDPair) {
     this.mux.Lock()
     defer this.mux.Unlock()
 
-    fmt.Println("filling a request...")
-
     if this.hasRequest(ids) {
         this.rmRequest(ids)
         if this.hasRequest(ids) {
@@ -117,18 +107,13 @@ func (this *Scheduler) NextRequest() *things.IDPair {
     this.mux.Lock()
     defer this.mux.Unlock()
 
-    fmt.Println("getting the next request...")
-
     if this.requests == nil {
-        fmt.Println("returning [nil]")
         return nil
     }
 
     ids := this.requests.x
     this.rmRequest(ids)
     this.appendRequest(ids)
-
-    fmt.Printf("returning {Fst: %d, Snd: %d}\n", int(ids.Fst), int(ids.Snd))
     return &ids
 }
 
