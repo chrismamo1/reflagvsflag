@@ -107,9 +107,9 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
         loser, _ := strconv.Atoi(req.FormValue("loser"))
 
         user := users.GetByAddr(db, req.RemoteAddr)
-        query := `
+        /*query := `
         SELECT
-            CASE WHEN (EXISTS(SELECT * FROM EXPOSURE WHERE "user" = $1 AND image = $2)) THEN
+            CASE WHEN (EXISTS(SELECT * FROM exposure WHERE "user" = $1 AND image = $2)) THEN
                 (UPDATE exposure SET heat = heat + 1 WHERE "user" = $3 AND image = $4)
             ELSE
                 (INSERT INTO exposure ("user", image, heat) VALUES ($5, $6, 1))
@@ -120,11 +120,33 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
         }
         if _, err := db.Exec(query, user.Id, loser, user.Id, loser, user.Id, loser); err != nil {
             log.Fatal(err)
+        }*/
+        bumpExposure := func(user *users.User, img things.ID) {
+            var exists bool
+            query := `SELECT (EXISTS(SELECT * FROM exposure WHERE "user" = $1 AND image = $2))`
+            err := db.QueryRow(query, user.Id, img).Scan(&exists)
+            if err != nil {
+                log.Fatal(err)
+            }
+            if exists {
+                query := `UPDATE exposure SET heat = heat + 1 WHERE "user" = $1 AND image = $2`
+                if _, err := db.Exec(query, user.Id, img); err != nil {
+                    log.Fatal(err)
+                }
+            } else {
+                query := `INSERT INTO exposure ("user", image, heat) VALUES ($1, $2, 1)`
+                if _, err := db.Exec(query, user.Id, img); err != nil {
+                    log.Fatal(err)
+                }
+            }
         }
+
+        bumpExposure(user, things.ID(winner))
+        bumpExposure(user, things.ID(loser))
 
         ids.Fst = things.ID(winner)
         ids.Snd = things.ID(loser)
-        query = "SELECT \"left\", \"right\", balance, heat FROM comparisons WHERE ((\"left\" = %d AND \"right\" = %d) OR (\"right\" = %d AND \"left\" = %d))"
+        query := "SELECT \"left\", \"right\", balance, heat FROM comparisons WHERE ((\"left\" = %d AND \"right\" = %d) OR (\"right\" = %d AND \"left\" = %d))"
         query = fmt.Sprintf(query, winner, loser, winner, loser)
         rows, err := db.Query(query)
         if err != nil {
