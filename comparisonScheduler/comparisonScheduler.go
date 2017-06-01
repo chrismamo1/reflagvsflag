@@ -37,6 +37,15 @@ func (this *Scheduler) addRequest(ids things.IDPair) {
     this.requests = n
 }
 
+func (this *Scheduler) hasRequest(ids things.IDPair) bool {
+    for n := this.requests; n != nil; n = n.next {
+        if n.x.Equivalent(ids) {
+            return true
+        }
+    }
+    return false
+}
+
 func (this *Scheduler) rmRequest(ids things.IDPair) {
     if this.requests == nil {
         return
@@ -44,7 +53,6 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
     if this.requests.x.Equivalent(ids) {
         fmt.Println("rmRequest found it in the prelude")
         this.requests = this.requests.next
-        return
     }
     var prev *node
     prev = this.requests
@@ -53,21 +61,17 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
         if n.x.Equivalent(ids) {
             fmt.Println("rmRequest found it in the actual loop")
             prev.next = n.next
-            return
+            prev = prev.next
+            if prev.next == nil {
+                return
+            }
+            n = prev.next
+            continue
         }
         prev = n
         n = n.next
     }
     return
-}
-
-func (this *Scheduler) hasRequest(ids things.IDPair) bool {
-    for n := this.requests; n != nil; n = n.next {
-        if n.x.Equivalent(ids) {
-            return true
-        }
-    }
-    return false
 }
 
 func (this *Scheduler) HasRequest(ids things.IDPair) bool {
