@@ -75,19 +75,6 @@ func (this *Scheduler) NextRequest() *things.IDPair {
 }
 
 func Make(db *sql.DB) *Scheduler {
-    statement := `
-        CREATE TEMPORARY TABLE scheduler (
-            id SERIAL PRIMARY KEY,
-            fst INT NOT NULL,
-            snd INT NOT NULL,
-            placement INT NOT NULL,
-            CHECK (fst <> snd));
-    `
-
-    if _, err := db.Exec(statement); err != nil {
-        log.Fatal("Error while making the temporary scheduling table: ", err)
-    }
-
     return &Scheduler{db: db}
 }
 

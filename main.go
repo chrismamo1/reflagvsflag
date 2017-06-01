@@ -70,6 +70,15 @@ func initDb() *sql.DB {
         FOREIGN KEY (winner) REFERENCES images(id),
         FOREIGN KEY (loser) REFERENCES images(id),
         CHECK (NOT(winner = loser)));
+    CREATE TABLE IF NOT EXISTS scheduler (
+        id SERIAL PRIMARY KEY,
+        fst INT NOT NULL,
+        snd INT NOT NULL,
+        placement INT NOT NULL,
+        FOREIGN KEY (fst) REFERENCES images(id),
+        FOREIGN KEY (snd) REFERENCES images(id),
+        CHECK (fst <> snd));
+    TRUNCATE scheduler;
     `
     _, err = db.Exec(statement)
     if err != nil {
