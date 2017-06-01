@@ -618,6 +618,7 @@ func main() {
 
     r.HandleFunc("/index", IndexHandler)
     r.HandleFunc("/index.html", IndexHandler)
+    r.HandleFunc("/", IndexHandler)
     r.HandleFunc("/ranks", RanksHandler(db))
     r.HandleFunc("/users", UsersHandler(db))
     r.HandleFunc("/judge", JudgeHandler(db, imageComparisonRequests, imageComparisonResponses))
