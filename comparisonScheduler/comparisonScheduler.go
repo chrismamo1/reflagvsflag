@@ -1,6 +1,7 @@
 package comparisonScheduler
 
 import (
+    "fmt"
     "sync"
     "github.com/chrismamo1/reflagvsflag/things")
 
