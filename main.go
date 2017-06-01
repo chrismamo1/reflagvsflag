@@ -108,15 +108,15 @@ func VoteHandler(db *sql.DB, resps chan things.IDPair) func(http.ResponseWriter,
 
         user := users.GetByAddr(db, req.RemoteAddr)
         query := `
-        BEGIN TRAN
+        BEGIN;
             IF EXISTS(SELECT * FROM EXPOSURE WHERE "user" = $1 AND image = $2)
             THEN BEGIN
-                UPDATE exposure SET heat = heat + 1 WHERE "user" = $3 AND image = $4
+                UPDATE exposure SET heat = heat + 1 WHERE "user" = $3 AND image = $4;
             END
             ELSE BEGIN
-                INSERT INTO exposure ("user", image, heat) VALUES ($5, $6, 1)
+                INSERT INTO exposure ("user", image, heat) VALUES ($5, $6, 1);
             END
-        COMMIT TRAN
+        COMMIT;
         `
         if _, err := db.Exec(query, user.Id, winner, user.Id, winner, user.Id, winner); err != nil {
             log.Fatal(err)
