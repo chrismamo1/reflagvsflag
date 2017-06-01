@@ -19,6 +19,7 @@ type Scheduler struct {
 }
 
 func (this *Scheduler) appendRequest(ids things.IDPair) {
+    fmt.Println("appending a request...")
     if this.requests == nil {
         this.requests = &node{x: ids, next: nil}
     }
