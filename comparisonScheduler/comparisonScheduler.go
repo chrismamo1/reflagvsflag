@@ -11,10 +11,10 @@ type Scheduler struct {
     db *sql.DB
 }
 
-func (this *Scheduler) hasAnyRequests() {
+func (this *Scheduler) hasAnyRequests() bool {
     var status bool
     query := `SELECT EXISTS(SELECT * FROM scheduler LIMIT 1)`
-    if err := this.db.QueryRow(query).Scan(&status); err {
+    if err := this.db.QueryRow(query).Scan(&status); err != nil {
         log.Fatal("Error while trying to see if the scheduler table has anything in it: ", err)
     }
     return status
@@ -24,7 +24,7 @@ func (this *Scheduler) appendRequest(ids things.IDPair) {
     placement := 0
     if this.hasAnyRequests() {
         query := `select MAX(placement) FROM scheduler`
-        if err := db.QueryRow(query).Scan(&placement); err != nil {
+        if err := this.db.QueryRow(query).Scan(&placement); err != nil {
             log.Fatal("Error while getting the max placement from the scheduler while appending a request: ", err)
         }
     }
