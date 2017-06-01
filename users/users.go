@@ -50,7 +50,7 @@ func (this *User) GetVotes(db *sql.DB) []vote {
 
     for rows.Next() {
         var v vote
-        if err := rows.Scan(&v.id, &v.user, &v.winner, &v.loser); err != nil {
+        if err := rows.Scan(&v.id, &v.user, &v.winner, &v.loser, &v.submitted_at); err != nil {
             log.Fatal("problem scanning a user's vote: ", err)
         }
         votes = append(votes, v)
