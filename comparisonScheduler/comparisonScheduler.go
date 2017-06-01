@@ -81,9 +81,9 @@ func Make(db *sql.DB) *Scheduler {
             fst INT NOT NULL,
             snd INT NOT NULL,
             placement INT NOT NULL,
-            FOREIGN KEY (fst) REFERENCES images(id),
-            FOREIGN KEY (snd) REFERENCES images(id),
-            CHECK (fst <> snd)
+            CHECK (fst <> snd),
+            CHECK (EXISTS (SELECT * FROM images WHERE id = fst LIMIT 1)),
+            CHECK (EXISTS (SELECT * FROM images WHERE id = snd LIMIT 1))
         );
     `
 
