@@ -9,7 +9,8 @@ import (
     "errors"
     "regexp"
     _ "github.com/lib/pq"
-    "io/ioutil")
+    "io/ioutil"
+    "strings")
 
 type ID int
 
@@ -80,7 +81,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
     var params Parameters
     params.MaxWidth = maxWidth
     params.MaxHeight = maxHeight
-    params.Path = thing.Path
+    params.Path = strings.Trim(thing.Path, "\n\r")
 
     buffer := bytes.NewBufferString("")
 
@@ -92,11 +93,11 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
 }
 
 func RenderSmall(thing Thing) string {
-    return render(thing, "/static/img/", 200, 200)
+    return render(thing, "", 200, 200)
 }
 
 func RenderNormal(thing Thing) string {
-    return render(thing, "/static/img/", 600, 600)
+    return render(thing, "", 600, 600)
 }
 
 func getHead2HeadComparison(db *sql.DB, a ID, b ID) (Comparison, error) {
