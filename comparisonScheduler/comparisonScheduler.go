@@ -43,12 +43,14 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
     var prev *node
     prev = this.requests
     if prev.x.Equivalent(ids) {
+        fmt.Println("rmRequest found it in the prelude")
         this.requests = prev.next
         return
     }
     n := prev.next
     for n != nil {
         if n.x.Equivalent(ids) {
+            fmt.Println("rmRequest found it in the actual loop")
             prev.next = n.next
             return
         }
@@ -124,7 +126,7 @@ func (this *Scheduler) NextRequest() *things.IDPair {
 }
 
 func Make() *Scheduler {
-    return &Scheduler{}
+    return &Scheduler{requests: nil}
 }
 
 /*func (this *Scheduler) addSatisfaction(ids things.IDPair) {
