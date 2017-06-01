@@ -40,7 +40,7 @@ func (this *User) GetVotes(db *sql.DB) []vote {
         log.Fatal(err)
     }
 
-    votes := make([]vote, 32)
+    var votes []vote
 
     for rows.Next() {
         var v vote
@@ -123,7 +123,7 @@ func GetAll(db *sql.DB) []User {
         log.Fatal(err)
     }
 
-    users := make([]User, 32)
+    var users []User
 
     for rows.Next() {
         var u User
