@@ -53,6 +53,8 @@ func (this *Scheduler) rmRequest(ids things.IDPair) {
     if this.requests.x.Equivalent(ids) {
         fmt.Println("rmRequest found it in the prelude")
         this.requests = this.requests.next
+        this.rmRequest(ids)
+        return
     }
     var prev *node
     prev = this.requests
