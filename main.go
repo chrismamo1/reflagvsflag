@@ -51,8 +51,8 @@ func initDb() *sql.DB {
         FOREIGN KEY ("left") REFERENCES images(id),
         FOREIGN KEY ("right") REFERENCES images(id));
     CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        ip_addr TEXT NOT NULL);
+        id SERIAL PRIMARY KEY,
+        ip_addr TEXT NOT NULL UNIQUE);
     CREATE TABLE IF NOT EXISTS exposure (
         "user" INT NOT NULL,
         image INT NOT NULL,
