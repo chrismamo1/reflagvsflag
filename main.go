@@ -597,6 +597,11 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                 scheduler.RequestComparison(request, sched.PMedium)
             }
 
+            if !startedRight {
+                randoms := things.GetRandomPairAboveIndex(db, r)
+                scheduler.RequestComparison(randoms, sched.PMarginal)
+            }
+
             if cmp >= 0 { // images[left] > images[pivot]
                 swapIndices(left, right)
 
