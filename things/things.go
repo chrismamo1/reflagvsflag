@@ -63,7 +63,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
             `
         } else {
             format = `
-                <div style="width: 40%">
+                <div>
                     <h5 style="text-align: center">{{.Name}}</h5>
                     <img
                         style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black'
@@ -74,7 +74,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
         }
     } else {
         format = `
-            <div style="width: 40%">
+            <div>
                 <h5 style="text-align: center">{{.Name}}</h5>
                 <img
                     style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black'
