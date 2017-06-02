@@ -430,6 +430,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                     iLeft = l
                 }
                 request := things.IDPair{Fst: left, Snd: pivot}
+                log.Printf("Queueing up a comparison for %d, %d\n", left, pivot)
                 scheduler.RequestComparison(request, sched.PMarginal)
                 for scheduler.HasRequest(request) {
                     // no-op
