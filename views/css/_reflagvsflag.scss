@@ -121,6 +121,7 @@ body {
   position: fixed;
   top: 0;
   bottom: 0;
+  font-size: 1.175em;
 
   .pure-menu-heading {
     color: $harmonious-first;
@@ -128,7 +129,7 @@ body {
       padding: 4px;
       border-radius: 2px;
       color: $harmonious-first;
-      background-color: mix-neutral($second-color);
+      background-color: mix-neutral($harmonious-second);
     }
   }
 }
