@@ -597,7 +597,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                 scheduler.RequestComparison(request, sched.PMedium)
             }
 
-            if !startedRight {
+            if !startedRight && l % 10 == 0 {
                 randoms := things.GetRandomPairAboveIndex(db, l)
                 scheduler.RequestComparison(randoms, sched.PMarginal)
             }
