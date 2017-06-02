@@ -133,6 +133,7 @@ func (this *Scheduler) FillRequest(ids things.IDPair) {
 }
 
 func (this *Scheduler) logPairsWithHeats(user users.User) {
+    log.Printf("Pairs with heats:\n")
     query := `
         SELECT
             fst, snd, SUM(heat) AS s_heat
