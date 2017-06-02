@@ -103,6 +103,7 @@ func (this *Scheduler) HasRequest(ids things.IDPair) bool {
 }
 
 func (this *Scheduler) RequestComparison(ids things.IDPair, p Priority) {
+    log.Printf("Requesting a comparison for %d, %d\n", int(ids.Fst), int(ids.Snd))
     if p == PLow || p == PMedium || p == PMarginal {
         this.appendRequest(ids, p)
     } else if p == PHigh {
@@ -115,6 +116,7 @@ func (this *Scheduler) RequestComparison(ids things.IDPair, p Priority) {
 }
 
 func (this *Scheduler) FillRequest(ids things.IDPair) {
+    log.Printf("Filling a request for %d, %d\n", int(ids.Fst), int(ids.Snd))
     if this.hasRequest(ids) {
         this.rmRequest(ids)
         if this.hasRequest(ids) {
