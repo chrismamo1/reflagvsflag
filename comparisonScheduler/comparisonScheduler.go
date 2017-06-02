@@ -117,11 +117,9 @@ func (this *Scheduler) RequestComparison(ids things.IDPair, p Priority) {
 
 func (this *Scheduler) FillRequest(ids things.IDPair) {
     log.Printf("Filling a request for %d, %d\n", int(ids.Fst), int(ids.Snd))
+    this.rmRequest(ids)
     if this.hasRequest(ids) {
-        this.rmRequest(ids)
-        if this.hasRequest(ids) {
-            log.Fatal(errors.New("rmRequest doesn't work"))
-        }
+        log.Fatal(errors.New("rmRequest doesn't work"))
     }
 }
 
