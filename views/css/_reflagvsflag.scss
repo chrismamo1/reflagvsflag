@@ -127,8 +127,8 @@ body {
     b {
       padding: 4px;
       border-radius: 2px;
-      color: $harmonious-second;
-      background-color: mix-neutral(mix-neutral($first-color));
+      color: $harmonious-first;
+      background-color: mix-neutral($second-color);
     }
   }
 }
