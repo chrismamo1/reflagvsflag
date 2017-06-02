@@ -64,7 +64,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
         } else {
             format = `
                 <span>
-                    <h5 style="text-align: center">{{.Name}}</h5>
+                    <h5 style="text-align: center; display: inline-block">{{.Name}}</h5>
                     <img
                         style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black'
                         src='{{.Path}}'>
@@ -75,7 +75,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
     } else {
         format = `
             <span>
-                <h5 style="text-align: center">{{.Name}}</h5>
+                <h5 style="text-align: center; display: inline-block">{{.Name}}</h5>
                 <img
                     style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black'
                     src='{{.Path}}'>
@@ -100,6 +100,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
     params.MaxWidth = maxWidth
     params.MaxHeight = maxHeight
     params.Path = strings.Trim(thing.Path, "\n\r")
+    params.Name = thing.Name
 
     buffer := bytes.NewBufferString("")
 
