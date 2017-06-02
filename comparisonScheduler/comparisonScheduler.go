@@ -108,7 +108,7 @@ func (this *Scheduler) RequestComparison(ids things.IDPair, p Priority) {
     if cmp = things.GetComparison(this.db, ids.Fst, ids.Snd); cmp < 0 {
         cmp = -cmp
     }
-    if cmp >= this.pointlessThreshold {
+    if cmp > this.pointlessThreshold {
         return
     }
 
