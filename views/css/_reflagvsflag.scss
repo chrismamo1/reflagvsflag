@@ -12,7 +12,7 @@ $first-color: hsl(120, 100%, 50%);
 
 $second-color: complement($first-color);
 
-/*
+
 // Check if the color is a cool color
 @function is-cool-color($color) {
         @return hue($color) < 300 and hue($color) > 120;
@@ -75,7 +75,7 @@ $second-color: complement($first-color);
         }
 }
 
-@function pick-contrast($color) {
+/*@function pick-contrast($color) {
         @if is-high-key-value($color){
                 @if lightness($color) < 30% {
                         @return lighten(complement($color), 86);
@@ -105,6 +105,7 @@ $white: hsl(300, 100%, 99%);
 body {
   font-family: sans-serif;
   background-color: $white;
+  padding-left: 200px;
 }
 
 #menu {
@@ -119,9 +120,11 @@ body {
   bottom: 0;
 
   .pure-menu-heading {
-    color: $first-color;
+    color: mix-neutral($first-color);
     b {
-      color: $second-color;
+      padding: 4px;
+      border-radius: 2px;
+      color: mix-neutral($second-color);
     }
   }
 }
