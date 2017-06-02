@@ -23,20 +23,21 @@ func initDb() *sql.DB {
         log.Fatal(err)
     }
 
-    /*statement := `
+    statement := `
     DROP TABLE IF EXISTS images CASCADE;
     DROP TABLE IF EXISTS comparisons CASCADE;
     DROP TABLE IF EXISTS users CASCADE;
     DROP TABLE IF EXISTS exposure CASCADE;
     DROP TABLE IF EXISTS votes;
+    DROP TABLE IF EXISTS scheduler;
     `
     _, err = db.Exec(statement)
     if err != nil {
         log.Printf("%q: %s\n", err, statement)
         return nil
-    }*/
+    }
 
-    statement := `
+    statement = `
     CREATE TABLE IF NOT EXISTS images (
         id SERIAL PRIMARY KEY,
         path TEXT NOT NULL UNIQUE,
@@ -75,6 +76,7 @@ func initDb() *sql.DB {
         fst INT NOT NULL,
         snd INT NOT NULL,
         placement INT NOT NULL,
+        priority INT NOT NULL,
         FOREIGN KEY (fst) REFERENCES images(id),
         FOREIGN KEY (snd) REFERENCES images(id),
         CHECK (fst <> snd));
@@ -407,7 +409,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                     iLeft = l
                 }
                 request := things.IDPair{Fst: left, Snd: pivot}
-                scheduler.RequestComparison(request)
+                scheduler.RequestComparison(request, sched.PMarginal)
                 for scheduler.HasRequest(request) {
                     // no-op
                     runtime.Gosched()
@@ -506,7 +508,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
             fmt.Printf("\tMight need a stronger comparison for %d and %d\n", request.Fst, request.Snd)
             for cmp * cmp < 1 {
                 fmt.Printf("Need a stronger comparison for %d and %d\n", request.Fst, request.Snd)
-                scheduler.RequestComparison(request)
+                scheduler.RequestComparison(request, sched.PHigh)
                 for scheduler.HasRequest(request) {
                     // no-op
                     runtime.Gosched()
@@ -539,7 +541,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                 request.Fst = newPivot
                 request.Snd = rando
 
-                scheduler.RequestComparison(request)
+                scheduler.RequestComparison(request, sched.PMedium)
             }
             // if we're below the pivot of the right child, start working on its comparisons
             if r < (iRight + (iCenter + 1)) / 2 && !startedRight {
@@ -566,7 +568,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                 request.Fst = newPivot
                 request.Snd = rando
 
-                scheduler.RequestComparison(request)
+                scheduler.RequestComparison(request, sched.PMedium)
             }
 
             if cmp >= 0 { // images[left] > images[pivot]

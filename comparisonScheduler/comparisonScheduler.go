@@ -8,6 +8,15 @@ import (
     "github.com/chrismamo1/reflagvsflag/users"
     _ "github.com/lib/pq")
 
+type Priority int
+
+const (
+    PMarginal Priority = iota
+    PLow
+    PMedium
+    PHigh
+)
+
 type Scheduler struct {
     db *sql.DB
 }
@@ -21,6 +30,17 @@ func (this *Scheduler) hasAnyRequests() bool {
     return status
 }
 
+func (this *Scheduler) getMinPlacement() int {
+    placement := 1
+    if this.hasAnyRequests() {
+        query := `select MIN(placement) FROM scheduler`
+        if err := this.db.QueryRow(query).Scan(&placement); err != nil {
+            log.Fatal("Error while getting the max placement from the scheduler while appending a request: ", err)
+        }
+    }
+    return placement
+}
+
 func (this *Scheduler) getMaxPlacement() int {
     placement := -1
     if this.hasAnyRequests() {
@@ -32,15 +52,31 @@ func (this *Scheduler) getMaxPlacement() int {
     return placement
 }
 
-func (this *Scheduler) appendRequest(ids things.IDPair) {
-    placement := this.getMaxPlacement() + 1
+func (this *Scheduler) prependRequest(ids things.IDPair, p Priority) {
+    placement := this.getMinPlacement() - 1
     statement := `
         INSERT INTO scheduler (fst, snd, placement)
             VALUES
                 (   $1,
                     $2,
-                    $3);`
-    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, placement); err != nil {
+                    $3,
+                    $4);`
+    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, placement, p); err != nil {
+        log.Fatal("Error while requesting a comparison: ", err)
+    }
+    return
+}
+
+func (this *Scheduler) appendRequest(ids things.IDPair, p Priority) {
+    placement := this.getMaxPlacement() + 1
+    statement := `
+        INSERT INTO scheduler (fst, snd, placement, priority)
+            VALUES
+                (   $1,
+                    $2,
+                    $3,
+                    $4);`
+    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, placement, p); err != nil {
         log.Fatal("Error while requesting a comparison: ", err)
     }
     return
@@ -66,8 +102,12 @@ func (this *Scheduler) HasRequest(ids things.IDPair) bool {
     return this.hasRequest(ids)
 }
 
-func (this *Scheduler) RequestComparison(ids things.IDPair) {
-    this.appendRequest(ids)
+func (this *Scheduler) RequestComparison(ids things.IDPair, p Priority) {
+    if p == PLow || p == PMedium || p == PMarginal {
+        this.appendRequest(ids, p)
+    } else if p == PHigh {
+        this.prependRequest(ids, p)
+    }
 
     if !this.hasRequest(ids) {
         log.Fatal(errors.New("something is horribly wrong with the scheduler"))
@@ -85,24 +125,45 @@ func (this *Scheduler) FillRequest(ids things.IDPair) {
 
 func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
     var ids things.IDPair
-    var id int
+    var id, placement int
+    var p Priority
 
     query := `
-        SELECT id, fst, snd
-        FROM scheduler
+        SELECT
+            id, fst, snd, priority, placement, SUM(heat) AS s_heat
+        FROM scheduler, exposure
+        WHERE ("user" = 0 AND (image = fst OR image = snd))
+        GROUP BY ROLLUP (id, fst, snd, priority, placement)
+        ORDER BY
+            s_heat ASC,
+            placement ASC
+        LIMIT 1;
+    `
+    /*`
+        SELECT
+            "user", scheduler.id, scheduler.fst, scheduler.snd, exposure.image, exposure.heat
+            AS "user", sched_id, fst, snd, image, heat
+        FROM scheduler, exposure
+        WHERE "user" = $1
         ORDER BY
             SUM(SELECT heat FROM exposure WHERE "user" = $1 AND (image = fst OR image = snd)) ASC,
             placement ASC
-        LIMIT 1`
+        LIMIT 1`*/
 
-    if err := this.db.QueryRow(query, user.Id).Scan(&id, &ids.Fst, &ids.Snd); err != nil {
+    if err := this.db.QueryRow(query, user.Id).Scan(&id, &ids.Fst, &ids.Snd, &p, &placement, nil); err != nil {
         log.Fatal("Error while selecting the highest priority scheduling request: ", err)
     }
 
-    placement := this.getMaxPlacement() + 1
+    if p == PLow || p == PMarginal {
+        placement = this.getMaxPlacement() + 1
+    } else if p == PHigh {
+        placement = placement + 1
+    } else if p == PMedium {
+        placement = placement + 2
+    }
     statement := `UPDATE scheduler SET placement = $1 WHERE id = $2`
     if _, err := this.db.Exec(statement, placement, id); err != nil {
-        log.Fatal("Error while moving a scheduling request to the back of the queue: ", err)
+        log.Fatal("Error while demoting a scheduling request: ", err)
     }
 
     return &ids
