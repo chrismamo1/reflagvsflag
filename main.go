@@ -280,12 +280,12 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
         page := `
         <h1>Which of these flags is better?</h1>
         <div>
-            <div style="width: 50%">
+            <div style="width: 50%%">
                 <a href="/vote?winner=%d&loser=%d">
                     %s
                 </a>
             </div>
-            <div style="width: 50%">
+            <div style="width: 50%%">
                 <a href="/vote?winner=%d&loser=%d">
                     %s
                 </a>
