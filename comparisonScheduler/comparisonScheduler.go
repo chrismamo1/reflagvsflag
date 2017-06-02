@@ -162,7 +162,7 @@ func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
         runtime.Gosched()
     }
 
-    this.logPairsWithHeats(user)
+    //this.logPairsWithHeats(user)
 
     query := `
         SELECT
