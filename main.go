@@ -429,8 +429,11 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                 }
                 left, pivot, right := refreshAll(iLeft, iPivot, iRight)
                 if int(right) != int(oldRight) || int(pivot) != int(oldPivot) {
-                    iLeft = l
                     log.Printf("right (old = %d, new = %d) and/or pivot (old = %d, new = %d) changed, resetting iLeft\n", oldRight, right, oldPivot, pivot)
+                    iLeft = l
+                    _, pivot, right := refreshAll(iLeft, iPivot, iRight)
+                    oldPivot = pivot
+                    oldRight = right
                     continue
                 }
                 request := things.IDPair{Fst: left, Snd: pivot}
