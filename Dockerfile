@@ -3,7 +3,7 @@ EXPOSE 80
 RUN go get github.com/gorilla/mux
 RUN go get github.com/lib/pq
 RUN go get github.com/chrismamo1/reflagvsflag
-RUN apt-get install ruby
+RUN apt-get update && apt-get install ruby
 RUN gem install sass
 RUN sass -v
 CMD cd / && \
