@@ -4,6 +4,7 @@ import (
     "database/sql"
     "errors"
     "log"
+    "runtime"
     "github.com/chrismamo1/reflagvsflag/things"
     "github.com/chrismamo1/reflagvsflag/users"
     _ "github.com/lib/pq")
@@ -156,6 +157,10 @@ func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
     var ids things.IDPair
     var id, placement, emptySum int
     var p Priority
+
+    for !this.hasAnyRequests() {
+        runtime.Gosched()
+    }
 
     this.logPairsWithHeats(user)
 
