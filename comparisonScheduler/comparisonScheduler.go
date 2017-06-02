@@ -55,14 +55,14 @@ func (this *Scheduler) getMaxPlacement() int {
 func (this *Scheduler) prependRequest(ids things.IDPair, p Priority) {
     placement := this.getMinPlacement() - 1
     statement := `
-        INSERT INTO scheduler (fst, snd, placement)
+        INSERT INTO scheduler (fst, snd, placement, priority)
             VALUES
                 (   $1,
                     $2,
                     $3,
                     $4);`
     if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, placement, p); err != nil {
-        log.Fatal("Error while requesting a comparison: ", err)
+        log.Fatal("Error while inserting a request at the front of the queue: ", err)
     }
     return
 }
@@ -77,7 +77,7 @@ func (this *Scheduler) appendRequest(ids things.IDPair, p Priority) {
                     $3,
                     $4);`
     if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, placement, p); err != nil {
-        log.Fatal("Error while requesting a comparison: ", err)
+        log.Fatal("Error while inserting a request at the back of the queue: ", err)
     }
     return
 }
