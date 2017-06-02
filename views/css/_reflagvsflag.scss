@@ -45,6 +45,9 @@ $second-color: complement($first-color);
         }
 }
 
+$harmonious-first: harmonious-mix($second-color, $first-color);
+$harmonious-second: harmonious-mix($first-color, $second-color);
+
 @function mix-neutral($color) {
         @if (is-highest-key-value($color)) {
                 @if is-high-key-value(complement($color)) {
@@ -120,11 +123,12 @@ body {
   bottom: 0;
 
   .pure-menu-heading {
-    color: mix-neutral($first-color);
+    color: $harmonious-first;
     b {
       padding: 4px;
       border-radius: 2px;
-      color: mix-neutral($second-color);
+      color: $harmonious-second;
+      background-color: mix-neutral(mix-neutral($first-color));
     }
   }
 }
