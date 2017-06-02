@@ -81,6 +81,7 @@ func initDb() *sql.DB {
         FOREIGN KEY (snd) REFERENCES images(id),
         CHECK (fst <> snd));
     TRUNCATE scheduler;
+    UPDATE exposure SET heat = 0;
     `
     _, err = db.Exec(statement)
     if err != nil {
