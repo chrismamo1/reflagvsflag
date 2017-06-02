@@ -315,14 +315,6 @@ func IndexHandler(writer http.ResponseWriter, req *http.Request) {
     return
 }
 
-func ShutdownHandler(srv *http.Server, db *sql.DB) func(http.ResponseWriter, *http.Request) {
-    return func(writer http.ResponseWriter, req *http.Request) {
-        defer db.Close()
-        defer srv.Shutdown(req.Context())
-        writer.Write([]byte("Shutting down the server."))
-    }
-}
-
 func refreshImages(db *sql.DB) {
     files, err := ioutil.ReadDir("./static/flags")
     if err != nil {
@@ -704,7 +696,6 @@ func main() {
     r.HandleFunc("/users", UsersHandler(db))
     r.HandleFunc("/judge", JudgeHandler(db, scheduler))
     r.HandleFunc("/vote", VoteHandler(db, scheduler))
-    r.HandleFunc("/shutdown", ShutdownHandler(srv, db))
     r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 
     go flagSort(db, scheduler)
