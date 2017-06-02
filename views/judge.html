@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <title>RE Flag vs. Flag</title>
+
+    <!-- the following <link> and <meta> tags suggested by the Pure.CSS docs at https://purecss.io/start/ -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/purecss@0.6.2/build/pure-min.css"
+      integrity="sha384-UQiGfs9ICog+LwheBSRCt1o5cbyKIHbwjWscjemyBMT9YCUMZffs6UqUTd0hObXD"
+      crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@0.6.2/build/grids-responsive-min.css">
+
+    <link rel="stylesheet" href="/static/css/reflagvsflag.css">
+    <link rel="stylesheet" href="/static/css/judge.css">
+  </head>
+  <body>
+    <div id="menu">
+      <a class="pure-menu-heading" href="/"><b>RE</b> Flag vs. Flag</a>
+      <div class="pure-menu">
+        <ul class="pure-menu-list">
+          <li class="pure-menu-item">
+            <a class="pure-menu-link" href="/judge">Judge Flags</a>
+          </li>
+          <li class="pure-menu-item">
+            <a class="pure-menu-link" href="/ranks">View Rankings</a>
+          </li>
+          <li class="pure-menu-item menu-item-divided">
+            <a class="pure-menu-link" href="#">About</a>
+          </li>
+          <li class="pure-menu-item menu-item-divided">
+            <a class="pure-menu-link" href="#">FAQ</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div id="content" class="pure-g">
+      <div class="pure-u-2-5">
+        <a href="/vote?winner={{.FirstId}}&loser={{.SecondId}}">
+          {{.First}}
+        </a>
+      </div>
+      <div class="pure-u-1-5">
+        or
+      </div>
+      <div class="pure-u-2-5">
+        <a href="/vote?loser={{.FirstId}}&winner={{.SecondId}}">
+          {{.Second}}
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

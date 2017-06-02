@@ -9,6 +9,7 @@ import (
     "os"
     "runtime"
     "strconv"
+    "html/template"
     "time"
     "github.com/gorilla/mux"
     _ "github.com/lib/pq"
@@ -246,6 +247,11 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 }
 
 func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
+    tmpl, err := template.ParseFiles("views/judge.html")
+    if err != nil {
+        log.Fatal("Error parsing the template for JudgeHandler: ", err)
+    }
+
     return func(writer http.ResponseWriter, req *http.Request) {
         var ids *things.IDPair
         for ids == nil {
@@ -278,30 +284,19 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
         bumpExposure(user, ids.Snd)
 
         left, right := things.SelectImages(db, *ids)
-        page := `
-        <h1>Which of these flags is better?</h1>
-        <table>
-            <tr>
-                <td>
-                    <div>
-                        <a href="/vote?winner=%d&loser=%d">
-                            %s
-                        </a>
-                    </div>
-                </td>
-                <td>
-                    <div>
-                        <a href="/vote?winner=%d&loser=%d">
-                            %s
-                        </a>
-                    </div>
-                </td>
-            </tr>
-        </table>
-        <a href="/ranks">Click here to see the current rankings</a>
-        `
-        page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))
-        writer.Write([]byte(page))
+        tmplParams := struct {
+            FirstId int
+            First template.HTML
+            SecondId int
+            Second template.HTML
+        } {
+            FirstId: int(left.Id),
+            First: things.RenderNormal(left),
+            SecondId: int(right.Id),
+            Second: things.RenderNormal(right) }
+        tmpl.Execute(writer, tmplParams)
+        /*page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))
+        writer.Write([]byte(page))*/
     }
 }
 

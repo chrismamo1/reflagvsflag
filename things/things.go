@@ -38,7 +38,7 @@ type Comparison struct {
     Balance int
 }
 
-func render(thing Thing, root string, maxWidth int, maxHeight int) string {
+func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML {
     matched, err := regexp.MatchString(".*\\.url$", thing.Path)
     if err != nil {
         log.Fatal(err)
@@ -112,14 +112,14 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
     if err != nil {
         log.Fatal(err)
     }
-    return buffer.String()
+    return template.HTML(buffer.String())
 }
 
-func RenderSmall(thing Thing) string {
+func RenderSmall(thing Thing) template.HTML {
     return render(thing, "", 200, 200)
 }
 
-func RenderNormal(thing Thing) string {
+func RenderNormal(thing Thing) template.HTML {
     return render(thing, "", 600, 600)
 }
 
