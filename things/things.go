@@ -63,12 +63,12 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
             `
         } else {
             format = `
-                <div>
+                <div style="padding: 5px">
                     <center>
                         <h3>{{.Name}}</h3>
                     </center>
                     <img
-                        style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black'
+                        style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
                         src='{{.Path}}'>
                     </img>
                 </div>
@@ -76,12 +76,12 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
         }
     } else {
         format = `
-            <div>
+            <div style="padding: 5px">
                 <center>
                     <h3>{{.Name}}</h3>
                 </center>
                 <img
-                    style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black'
+                    style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
                     src='{{.Path}}'>
                 </img>
             </div>
