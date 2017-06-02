@@ -428,6 +428,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                 left, pivot, right := refreshAll(iLeft, iPivot, iRight)
                 if right != oldRight || pivot != oldPivot {
                     iLeft = l
+                    continue
                 }
                 request := things.IDPair{Fst: left, Snd: pivot}
                 log.Printf("Queueing up a comparison for %d, %d\n", left, pivot)
