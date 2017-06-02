@@ -211,6 +211,8 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 
 func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
+        users.GetByAddr(db, req.RemoteAddr)
+
         store := loadImageStore(db)
 
         page := `
@@ -238,6 +240,8 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
+        users.GetByAddr(db, req.RemoteAddr)
+
         page := `
         <html>
             <head></head>
@@ -265,6 +269,8 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
+        users.GetByAddr(db, req.RemoteAddr)
+
         var ids *things.IDPair
         for ids == nil {
             ids = scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr))
