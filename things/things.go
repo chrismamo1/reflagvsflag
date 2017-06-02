@@ -25,6 +25,7 @@ func (this *IDPair) Equivalent(x IDPair) bool {
 
 type Thing struct {
     Id ID
+    Name string
     Path string
     Desc string
     Index int
@@ -61,10 +62,26 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
             </video>
             `
         } else {
-            format = "<img style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black' src='{{.Path}}'></img>"
+            format = `
+                <span>
+                    <h5 style="text-align: center">{{.Name}}</h5>
+                    <img
+                        style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black'
+                        src='{{.Path}}'>
+                    </img>
+                </span>
+            `
         }
     } else {
-        format = "<img style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black' src='{{.Path}}'></img>"
+        format = `
+            <span>
+                <h5 style="text-align: center">{{.Name}}</h5>
+                <img
+                    style='max-width: {{.MaxWidth}}px; max-height: {{.MaxHeight}}px; box-shadow: 0px 0px 5px black'
+                    src='{{.Path}}'>
+                </img>
+            </span>
+        `
         thing.Path = root + thing.Path
     }
     templ, err := template.New("image").Parse(format)
@@ -76,6 +93,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) string {
         MaxWidth int
         MaxHeight int
         Path string
+        Name string
     }
 
     var params Parameters
@@ -175,7 +193,7 @@ func GetComparison(db *sql.DB, a ID, b ID) int {
 
 func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
     q := `
-    SELECT id, path, description, img_index, heat
+    SELECT id, path, description, img_index, heat, name
     FROM images
     WHERE id = $1 OR id = $2;
     `
@@ -188,13 +206,13 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
 
     var img1,img2 Thing
     rows.Next();
-    err = rows.Scan(&img1.Id, &img1.Path, &img1.Desc, &img1.Index, &img1.Heat)
+    err = rows.Scan(&img1.Id, &img1.Path, &img1.Desc, &img1.Index, &img1.Heat, &img1.Name)
     if err != nil {
         fmt.Println("A\n")
         log.Fatal(err)
     }
     rows.Next();
-    err = rows.Scan(&img2.Id, &img2.Path, &img2.Desc, &img2.Index, &img2.Heat)
+    err = rows.Scan(&img2.Id, &img2.Path, &img2.Desc, &img2.Index, &img2.Heat, &img1.Name)
     if err != nil {
         fmt.Println("B\n")
         log.Fatal(err)
