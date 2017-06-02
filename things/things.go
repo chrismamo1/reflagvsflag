@@ -213,7 +213,7 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
         log.Fatal(err)
     }
     rows.Next();
-    err = rows.Scan(&img2.Id, &img2.Path, &img2.Desc, &img2.Index, &img2.Heat, &img1.Name)
+    err = rows.Scan(&img2.Id, &img2.Path, &img2.Desc, &img2.Index, &img2.Heat, &img2.Name)
     if err != nil {
         fmt.Println("B\n")
         log.Fatal(err)
