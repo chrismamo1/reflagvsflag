@@ -667,7 +667,7 @@ func main() {
     defer fmt.Println("Closing shit")
     defer db.Close()
 
-    scheduler := sched.Make(db)
+    scheduler := sched.Make(db, 1)
 
     //imageComparisonRequests := make(chan things.IDPair)
     //imageComparisonResponses := make(chan things.IDPair)

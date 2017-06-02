@@ -19,6 +19,7 @@ const (
 
 type Scheduler struct {
     db *sql.DB
+    pointlessThreshold int
 }
 
 func (this *Scheduler) hasAnyRequests() bool {
@@ -103,6 +104,14 @@ func (this *Scheduler) HasRequest(ids things.IDPair) bool {
 }
 
 func (this *Scheduler) RequestComparison(ids things.IDPair, p Priority) {
+    cmp := 0
+    if cmp = things.GetComparison(this.db, ids.Fst, ids.Snd); cmp < 0 {
+        cmp = -cmp
+    }
+    if cmp >= this.pointlessThreshold {
+        return
+    }
+
     log.Printf("Requesting a comparison for %d, %d\n", int(ids.Fst), int(ids.Snd))
     if p == PLow || p == PMedium || p == PMarginal {
         this.appendRequest(ids, p)
@@ -197,8 +206,8 @@ func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
     return &ids
 }
 
-func Make(db *sql.DB) *Scheduler {
-    return &Scheduler{db: db}
+func Make(db *sql.DB, pointlessAt int) *Scheduler {
+    return &Scheduler{db: db, pointlessThreshold: pointlessAt}
 }
 
 /*func (this *Scheduler) addSatisfaction(ids things.IDPair) {
