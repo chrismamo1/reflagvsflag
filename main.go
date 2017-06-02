@@ -419,7 +419,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
         queueUpComparisons := func(iLeft int, iRight int) {
             l := iLeft
             iPivot := (iLeft + iRight) / 2
-            _, oldPivot, oldRight := refreshAll(iLeft, iRight, iPivot)
+            _, oldPivot, oldRight := refreshAll(iLeft, iPivot, iRight)
             for iLeft < iRight {
                 log.Println("Trying to queue up a comparison\n")
                 if iLeft == iPivot {
