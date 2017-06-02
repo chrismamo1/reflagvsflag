@@ -115,21 +115,21 @@ body {
   overflow: hidden;
   background-color: $black;
   color: $white;
-  width: 200px;
-  left: 200px;
-  margin-left: -200px;
+  width: 220px;
+  left: 220px;
+  margin-left: -220px;
   position: fixed;
   top: 0;
   bottom: 0;
   font-size: 1.175em;
 
   .pure-menu-heading {
-    color: $harmonious-first;
+    color: mix-neutral($harmonious-first);
     b {
       padding: 4px;
       border-radius: 2px;
       color: $harmonious-first;
-      background-color: mix-neutral($harmonious-second);
+      background-color: darken(mix-neutral($harmonious-second), 25%);
     }
   }
 }
@@ -137,5 +137,5 @@ body {
 #content {
   background-color: $white;
   color: $black;
-  left: 200px;
+  left: 220px;
 }
