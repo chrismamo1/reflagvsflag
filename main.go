@@ -279,13 +279,13 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
         left, right := things.SelectImages(db, *ids)
         page := `
         <h1>Which of these flags is better?</h1>
-        <div style="float: left">
-            <div>
+        <div>
+            <div style="float: left">
                 <a href="/vote?winner=%d&loser=%d">
                     %s
                 </a>
             </div>
-            <div>
+            <div style="float: left">
                 <a href="/vote?winner=%d&loser=%d">
                     %s
                 </a>
