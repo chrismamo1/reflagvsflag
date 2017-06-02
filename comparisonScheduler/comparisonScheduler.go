@@ -132,7 +132,7 @@ func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
         SELECT
             id, fst, snd, priority, placement, SUM(heat) AS s_heat
         FROM scheduler, exposure
-        WHERE ("user" = 0 AND (image = fst OR image = snd))
+        WHERE ("user" = $1 AND (image = fst OR image = snd))
         GROUP BY ROLLUP (id, fst, snd, priority, placement)
         ORDER BY
             s_heat ASC,

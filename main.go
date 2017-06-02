@@ -278,6 +278,8 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
         <a href="/vote?winner=%d&loser=%d">
         %s
         </a>
+        <div />
+        <a href="/ranks">Click here to see the current rankings</a>
         `
         page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))
         writer.Write([]byte(page))
