@@ -125,10 +125,31 @@ func (this *Scheduler) FillRequest(ids things.IDPair) {
     }
 }
 
+func (this *Scheduler) logPairsWithHeats(user users.User) {
+    query := `
+        SELECT
+            fst, snd, SUM(heat) AS s_heat
+            FROM scheduler, exposure
+            WHERE ("user" = $1 AND (image = fst OR image = snd))
+            GROUP BY GROUPING SETS ((fst, snd));
+    `
+    rows, err := this.db.Query(query, user.Id)
+    if err != nil {
+        log.Fatal("Error querying rows to log: ", err)
+    }
+    for rows.Next() {
+        var fst, snd, heat int
+        rows.Scan(&fst, &snd, &heat)
+        log.Printf("\t%d, %d, heat = %d\n", fst, snd, heat)
+    }
+}
+
 func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
     var ids things.IDPair
     var id, placement, emptySum int
     var p Priority
+
+    this.logPairsWithHeats(user)
 
     query := `
         SELECT
