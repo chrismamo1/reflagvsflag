@@ -133,29 +133,6 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
         if _, err := db.Exec(query, user.Id, loser, user.Id, loser, user.Id, loser); err != nil {
             log.Fatal(err)
         }*/
-        bumpExposure := func(user *users.User, img things.ID) {
-            var exists bool
-            query := `SELECT (EXISTS(SELECT * FROM exposure WHERE "user" = $1 AND image = $2))`
-            err := db.QueryRow(query, user.Id, img).Scan(&exists)
-            if err != nil {
-                log.Fatal(err)
-            }
-            if exists {
-                query := `UPDATE exposure SET heat = heat + 1 WHERE "user" = $1 AND image = $2`
-                if _, err := db.Exec(query, user.Id, img); err != nil {
-                    log.Fatal(err)
-                }
-            } else {
-                query := `INSERT INTO exposure ("user", image, heat) VALUES ($1, $2, 1)`
-                if _, err := db.Exec(query, user.Id, img); err != nil {
-                    log.Fatal(err)
-                }
-            }
-        }
-
-        bumpExposure(user, things.ID(winner))
-        bumpExposure(user, things.ID(loser))
-
         user.SubmitVote(db, things.ID(winner), things.ID(loser))
 
         ids.Fst = things.ID(winner)
@@ -269,12 +246,36 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
-        users.GetByAddr(db, req.RemoteAddr)
-
         var ids *things.IDPair
         for ids == nil {
             ids = scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr))
         }
+
+        bumpExposure := func(user *users.User, img things.ID) {
+            var exists bool
+            query := `SELECT (EXISTS(SELECT * FROM exposure WHERE "user" = $1 AND image = $2))`
+            err := db.QueryRow(query, user.Id, img).Scan(&exists)
+            if err != nil {
+                log.Fatal(err)
+            }
+            if exists {
+                query := `UPDATE exposure SET heat = heat + 1 WHERE "user" = $1 AND image = $2`
+                if _, err := db.Exec(query, user.Id, img); err != nil {
+                    log.Fatal(err)
+                }
+            } else {
+                query := `INSERT INTO exposure ("user", image, heat) VALUES ($1, $2, 1)`
+                if _, err := db.Exec(query, user.Id, img); err != nil {
+                    log.Fatal(err)
+                }
+            }
+        }
+
+        user := users.GetByAddr(db, req.RemoteAddr)
+
+        bumpExposure(user, ids.Fst)
+        bumpExposure(user, ids.Snd)
+
         left, right := things.SelectImages(db, *ids)
         page := `
         <h1>Which of these flags is better?</h1>
