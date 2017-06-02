@@ -26,6 +26,37 @@ type vote struct {
     submitted_at time.Time
 }
 
+func New(db *sql.DB, addr string) User {
+    _, err := db.Exec("INSERT INTO users (ip_addr) VALUES ($1)", addr)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    var u User
+
+    err = db.QueryRow("SELECT id, ip_addr FROM users WHERE ip_addr = $1", addr).Scan(&u.Id, &u.Addr)
+    if err != nil {
+        log.Fatal("Failed to get a user we just created: ", err)
+    }
+
+    rows, err := db.Query(`SELECT "id" FROM images`)
+    for rows.Next() {
+        var id things.ID
+
+        err := rows.Scan(&id)
+        if err != nil {
+            log.Fatal("Failed to scan an image's ID while creating a new user: ", err)
+        }
+
+        db.Exec(`INSERT INTO exposure ("user", image, heat) VALUES ($1, $2, 0)`, u.Id, id)
+        if err != nil {
+            log.Fatal("Failed to add an exposure entry while creating a new user: ", err)
+        }
+    }
+
+    return u
+}
+
 func GetByAddr(db *sql.DB, addr string) *User {
     if strings.Index(addr, ":") != -1 {
         addr = addr[0:strings.Index(addr,":")]
@@ -35,11 +66,7 @@ func GetByAddr(db *sql.DB, addr string) *User {
     if err != nil {
         // user doesn't exist yet, we can remedy this
         fmt.Println("creating a new user because we failed at trying to get it...\n")
-        _, err := db.Exec("INSERT INTO users (ip_addr) VALUES ($1)", addr)
-        if err != nil {
-            log.Fatal(err)
-        }
-        return GetByAddr(db, addr)
+        *u = New(db, addr)
     }
     return u
 }
