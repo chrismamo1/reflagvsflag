@@ -125,7 +125,7 @@ func (this *Scheduler) FillRequest(ids things.IDPair) {
 
 func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
     var ids things.IDPair
-    var id, placement int
+    var id, placement, emptySum int
     var p Priority
 
     query := `
@@ -150,9 +150,16 @@ func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
             placement ASC
         LIMIT 1`*/
 
-    if err := this.db.QueryRow(query, user.Id).Scan(&id, &ids.Fst, &ids.Snd, &p, &placement, nil); err != nil {
+    if err := this.db.QueryRow(query, user.Id).Scan(&id, &ids.Fst, &ids.Snd, &p, &placement, &emptySum); err != nil {
         log.Fatal("Error while selecting the highest priority scheduling request: ", err)
+        /*query := `
+            SELECT id, fst, snd, priority, placement
+            FROM scheduler
+            WHERE 
+        `*/
     }
+
+    log.Printf("Selecting image pair with heat of %d\n", emptySum)
 
     if p == PLow || p == PMarginal {
         placement = this.getMaxPlacement() + 1
