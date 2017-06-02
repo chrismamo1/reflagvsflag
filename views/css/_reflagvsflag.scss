@@ -117,9 +117,17 @@ body {
   position: fixed;
   top: 0;
   bottom: 0;
+
+  .pure-menu-heading {
+    color: $first-color;
+    b {
+      color: $second-color;
+    }
+  }
 }
 
 #content {
   background-color: $white;
   color: $black;
+  left: 200px;
 }

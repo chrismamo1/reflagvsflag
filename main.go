@@ -189,31 +189,26 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 }
 
 func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
+    tmpl, err := template.ParseFiles("views/ranks.html")
+    if err != nil {
+        log.Fatal("Error parsing the template for JudgeHandler: ", err)
+    }
+
     return func(writer http.ResponseWriter, req *http.Request) {
         users.GetByAddr(db, req.RemoteAddr)
 
         store := loadImageStore(db)
 
-        page := `
-        <html>
-            <head></head>
-            <body>
-                <ol>
-                    %s
-                </ol>
-            </body>
-        </html>
-        `
-
-        els := ""
+        els := []template.HTML{}
 
         for i := 0; i < len(store); i = i + 1 {
-            els += fmt.Sprintf("<li>%s</li>", things.RenderSmall(store[i]))
+            els = append(els, things.RenderSmall(store[i]))
         }
 
-        page = fmt.Sprintf(page, els);
-
-        writer.Write([]byte(page))
+        tmplParams := struct {
+            AllRanks []template.HTML
+        } { AllRanks: els }
+        tmpl.Execute(writer, tmplParams)
     }
 }
 
