@@ -1,20 +1,20 @@
 package main
 
 import (
-    "fmt"
-    "github.com/gorilla/mux"
-    "net/http"
-    "time"
-    "log"
     "database/sql"
+    "fmt"
+    "io/ioutil"
+    "log"
+    "net/http"
     "os"
     "runtime"
-    _ "github.com/lib/pq"
-    "io/ioutil"
     "strconv"
+    "time"
+    "github.com/gorilla/mux"
+    _ "github.com/lib/pq"
+    sched "github.com/chrismamo1/reflagvsflag/comparisonScheduler"
     "github.com/chrismamo1/reflagvsflag/things"
-    "github.com/chrismamo1/reflagvsflag/users"
-    sched "github.com/chrismamo1/reflagvsflag/comparisonScheduler")
+    "github.com/chrismamo1/reflagvsflag/users")
 
 func initDb() *sql.DB {
     dbParams := os.ExpandEnv("user=db_master dbname=reflagvsflag_db sslmode=disable password=${REFLAGVSFLAG_DB_PASSWORD} host=${REFLAGVSFLAG_DB_HOST}")

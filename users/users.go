@@ -1,15 +1,13 @@
 package users
 
 import (
-    "fmt"
-    "time"
-    //"bytes"
     "database/sql"
-    "github.com/chrismamo1/reflagvsflag/things"
+    "fmt"
     "log"
     "strings"
-    //"html/template"
-    _ "github.com/lib/pq")
+    "time"
+    _ "github.com/lib/pq"
+    "github.com/chrismamo1/reflagvsflag/things")
 
 type ID int
 

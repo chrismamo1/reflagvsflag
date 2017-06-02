@@ -1,15 +1,15 @@
 package things
 
 import (
-    "html/template"
-    "log"
     "bytes"
     "database/sql"
-    "fmt"
     "errors"
-    "regexp"
+    "fmt"
     _ "github.com/lib/pq"
+    "html/template"
     "io/ioutil"
+    "log"
+    "regexp"
     "strings")
 
 type ID int

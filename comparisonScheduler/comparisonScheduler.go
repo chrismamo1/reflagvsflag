@@ -5,9 +5,9 @@ import (
     "errors"
     "log"
     "runtime"
+    _ "github.com/lib/pq"
     "github.com/chrismamo1/reflagvsflag/things"
-    "github.com/chrismamo1/reflagvsflag/users"
-    _ "github.com/lib/pq")
+    "github.com/chrismamo1/reflagvsflag/users")
 
 type Priority int
 
