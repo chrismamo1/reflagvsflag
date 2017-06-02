@@ -95,7 +95,7 @@ func initDb() *sql.DB {
 }
 
 func loadImageStore(db *sql.DB) []things.Thing {
-    rows, err := db.Query("SELECT id, path, description, img_index, heat FROM images ORDER BY img_index ASC")
+    rows, err := db.Query("SELECT id, path, description, img_index, heat, name FROM images ORDER BY img_index ASC")
     if err != nil {
         log.Fatal(err)
     }
@@ -105,7 +105,7 @@ func loadImageStore(db *sql.DB) []things.Thing {
 
     for rows.Next() {
         var img things.Thing
-        err = rows.Scan(&img.Id, &img.Path, &img.Desc, &img.Index, &img.Heat)
+        err = rows.Scan(&img.Id, &img.Path, &img.Desc, &img.Index, &img.Heat, &img.Name)
         if err != nil {
             log.Fatal(err)
         }

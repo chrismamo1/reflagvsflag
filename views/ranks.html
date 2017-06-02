@@ -36,19 +36,23 @@
       </div>
     </div>
     <div id="content" class="pure-g">
-      {{define "RanksListItemTemplate"}}
-        {{range .}}
-          <li>
-            {{.}}
-          </li>
+      <div class="pure-u-1-5"></div>
+      <div class="pure-u-3-5">
+        {{define "RanksListItemTemplate"}}
+          {{range .}}
+            <li>
+              {{.}}
+            </li>
+          {{end}}
         {{end}}
-      {{end}}
-      {{define "RanksListTemplate"}}
-        <ol>
-          {{template "RanksListItemTemplate" .}}
-        </ol>
-      {{end}}
-      {{template "RanksListTemplate" .AllRanks}}
+        {{define "RanksListTemplate"}}
+          <ol>
+            {{template "RanksListItemTemplate" .}}
+          </ol>
+        {{end}}
+        {{template "RanksListTemplate" .AllRanks}}
+      </div>
+      <div class="pure-u-1-5"></div>
     </div>
   </body>
 </html>
