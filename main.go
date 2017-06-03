@@ -193,9 +193,13 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 }
 
 func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
-    tmpl, err := template.ParseFiles("views/ranks.html")
+    tmpl, err := template.ParseFiles("views/reflagvsflag.html", "views/ranks.html")
     if err != nil {
-        log.Fatal("Error parsing the template for RanksHandler: ", err)
+        log.Fatal("Error parsing the templates for RanksHandler: ", err)
+    }
+
+    type CParams struct {
+        AllRanks []template.HTML
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
@@ -210,16 +214,24 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
         }
 
         tmplParams := struct {
-            AllRanks []template.HTML
-        } { AllRanks: els }
-        tmpl.Execute(writer, tmplParams)
+            ContentParams CParams
+            Style string
+        } { ContentParams: CParams{ AllRanks: els },
+            Style: "ranks" }
+        tmpl.ExecuteTemplate(writer, "container", tmplParams)
     }
 }
 
 func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
-    tmpl, err := template.ParseFiles("views/stats.html")
+    tmpl, err := template.ParseFiles("views/reflagvsflag.html", "views/stats.html")
     if err != nil {
-        log.Fatal("Error parsing the template for StatsHandler: ", err)
+        log.Fatal("Error parsing the templates for StatsHandler: ", err)
+    }
+
+    type CParams struct {
+        TotalVotes int
+        TotalQuickSortIterations int
+        TotalUsers int
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
@@ -242,13 +254,13 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
         }
 
         tmplParams := struct {
-            TotalVotes int
-            TotalQuickSortIterations int
-            TotalUsers int
-        } {
-            TotalVotes: totalVotes,
-            TotalQuickSortIterations: totalQuickSortIterations,
-            TotalUsers: totalUsers }
+            ContentParams CParams
+            Style string
+        } { ContentParams: CParams {
+                TotalVotes: totalVotes,
+                TotalQuickSortIterations: totalQuickSortIterations,
+                TotalUsers: totalUsers },
+            Style: "stats" }
         tmpl.Execute(writer, tmplParams)
     }
 }
@@ -283,9 +295,16 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 }
 
 func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
-    tmpl, err := template.ParseFiles("views/judge.html")
+    tmpl, err := template.ParseFiles("views/reflagvsflag.html", "views/judge.html")
     if err != nil {
-        log.Fatal("Error parsing the template for JudgeHandler: ", err)
+        log.Fatal("Error parsing the templates for JudgeHandler: ", err)
+    }
+
+    type CParams struct {
+        FirstId int
+        First template.HTML
+        SecondId int
+        Second template.HTML
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
@@ -321,16 +340,15 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 
         left, right := things.SelectImages(db, *ids)
         tmplParams := struct {
-            FirstId int
-            First template.HTML
-            SecondId int
-            Second template.HTML
-        } {
-            FirstId: int(left.Id),
-            First: things.RenderNormal(left),
-            SecondId: int(right.Id),
-            Second: things.RenderNormal(right) }
-        tmpl.Execute(writer, tmplParams)
+            ContentParams CParams
+            Style string
+        } { ContentParams: CParams{
+                FirstId: int(left.Id),
+                First: things.RenderNormal(left),
+                SecondId: int(right.Id),
+                Second: things.RenderNormal(right) },
+            Style: "judge" }
+        tmpl.ExecuteTemplate(writer, "container", tmplParams)
         /*page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))
         writer.Write([]byte(page))*/
     }
