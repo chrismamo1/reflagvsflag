@@ -171,7 +171,7 @@ func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
         WHERE ("user" = $1 AND (image = fst OR image = snd))
         GROUP BY ROLLUP (id, fst, snd, priority, placement)
         ORDER BY
-            s_heat - priority ASC,
+            s_heat ASC,
             placement ASC
         LIMIT 1;
     `
