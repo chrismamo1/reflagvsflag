@@ -191,7 +191,7 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
     tmpl, err := template.ParseFiles("views/ranks.html")
     if err != nil {
-        log.Fatal("Error parsing the template for JudgeHandler: ", err)
+        log.Fatal("Error parsing the template for RanksHandler: ", err)
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
@@ -208,6 +208,41 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
         tmplParams := struct {
             AllRanks []template.HTML
         } { AllRanks: els }
+        tmpl.Execute(writer, tmplParams)
+    }
+}
+
+func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
+    tmpl, err := template.ParseFiles("views/stats.html")
+    if err != nil {
+        log.Fatal("Error parsing the template for StatsHandler: ", err)
+    }
+
+    return func(writer http.ResponseWriter, req *http.Request) {
+        var totalVotes, totalUsers, totalQuickSortIterations int
+        users.GetByAddr(db, req.RemoteAddr)
+
+        query := `SELECT COUNT(*) FROM votes;`
+        if err := db.QueryRow(query).Scan(&totalVotes); err != nil {
+            log.Fatal("Error trying to get the total number of votes: ", err)
+        }
+
+        query = `SELECT COUNT(*) FROM users;`
+        if err := db.QueryRow(query).Scan(&totalUsers); err != nil {
+            log.Fatal("Error trying to get the total number of users: ", err)
+        }
+
+        // TODO: figure this one out
+        totalQuickSortIterations = -1
+
+        tmplParams := struct {
+            TotalVotes int
+            TotalQuickSortIterations int
+            TotalUsers int
+        } {
+            TotalVotes: totalVotes,
+            TotalQuickSortIterations: totalQuickSortIterations,
+            TotalUsers: totalUsers }
         tmpl.Execute(writer, tmplParams)
     }
 }
@@ -684,6 +719,7 @@ func main() {
     r.HandleFunc("/", IndexHandler)
     r.HandleFunc("/ranks", RanksHandler(db))
     r.HandleFunc("/users", UsersHandler(db))
+    r.HandleFunc("/users", StatsHandler(db))
     r.HandleFunc("/judge", JudgeHandler(db, scheduler))
     r.HandleFunc("/vote", VoteHandler(db, scheduler))
     r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
