@@ -63,7 +63,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
             `
         } else {
             format = `
-                <div style="padding: 5px">
+                <div style="padding: 5px; margin-top: -50%; height: 100%">
                     <center>
                         <h3>{{.Name}}</h3>
                     </center>
