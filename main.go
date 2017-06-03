@@ -261,7 +261,7 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
                 TotalQuickSortIterations: totalQuickSortIterations,
                 TotalUsers: totalUsers },
             Style: "stats" }
-        tmpl.Execute(writer, tmplParams)
+        tmpl.ExecuteTemplate(writer, "container", tmplParams)
     }
 }
 
