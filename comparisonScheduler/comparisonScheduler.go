@@ -166,7 +166,7 @@ func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
 
     query := `
         SELECT
-            id, fst, snd, priority, placement, SUM(heat) AS s_heat
+            id, fst, snd, priority, placement, SUM(heat) - priority AS s_heat
         FROM scheduler, exposure
         WHERE ("user" = $1 AND (image = fst OR image = snd))
         GROUP BY ROLLUP (id, fst, snd, priority, placement)
