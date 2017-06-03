@@ -81,6 +81,10 @@ func initDb() *sql.DB {
         FOREIGN KEY (fst) REFERENCES images(id),
         FOREIGN KEY (snd) REFERENCES images(id),
         CHECK (fst <> snd));
+    CREATE TABLE IF NOT EXISTS sort_iterations (
+        id INT PRIMARY KEY NOT NULL DEFAULT(1) CHECK (id = 1),
+        count int NOT NULL);
+    INSERT INTO sort_iterations (count) VALUES (0) ON CONFLICT DO NOTHING;
     TRUNCATE scheduler;
     UPDATE exposure SET heat = 0;
     `
@@ -232,8 +236,10 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
             log.Fatal("Error trying to get the total number of users: ", err)
         }
 
-        // TODO: figure this one out
-        totalQuickSortIterations = -1
+        query = `SELECT count FROM sort_iterations;`
+        if err := db.QueryRow(query).Scan(&totalQuickSortIterations); err != nil {
+            log.Fatal("Error trying to get the total number of users: ", err)
+        }
 
         tmplParams := struct {
             TotalVotes int
@@ -663,6 +669,7 @@ func flagSort(db *sql.DB, scheduler *sched.Scheduler) {
                     readyForRight <- true
                 }
                 fmt.Println("Basically done with a quickSort iteration; now just waiting on kids")
+                db.Exec("UPDATE sort_iterations SET count = count + 1 WHERE id = 1")
                 // I don't really care about the results, I just need to wait for these to finish executing
                 <-isDoneLeft
                 <-isDoneRight
