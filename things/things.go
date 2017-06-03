@@ -68,7 +68,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
                         <h3>{{.Name}}</h3>
                     </center>
                     <img
-                        style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                        style='width: 100%; max-height: 100%; box-shadow: 0px 0px 3px black'
                         src='{{.Path}}'>
                     </img>
                 </div>
@@ -81,7 +81,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
                     <h3>{{.Name}}</h3>
                 </center>
                 <img
-                    style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                    style='width: 100%; max-height: 100%; box-shadow: 0px 0px 3px black'
                     src='{{.Path}}'>
                 </img>
             </div>
