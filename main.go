@@ -719,7 +719,7 @@ func main() {
     r.HandleFunc("/", IndexHandler)
     r.HandleFunc("/ranks", RanksHandler(db))
     r.HandleFunc("/users", UsersHandler(db))
-    r.HandleFunc("/users", StatsHandler(db))
+    r.HandleFunc("/stats", StatsHandler(db))
     r.HandleFunc("/judge", JudgeHandler(db, scheduler))
     r.HandleFunc("/vote", VoteHandler(db, scheduler))
     r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
