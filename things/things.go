@@ -63,7 +63,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
             `
         } else {
             format = `
-                <div>
+                <div style="padding: 5px">
                     <center>
                         <h3>{{.Name}}</h3>
                     </center>
@@ -76,7 +76,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
         }
     } else {
         format = `
-            <div>
+            <div style="padding: 5px">
                 <center>
                     <h3>{{.Name}}</h3>
                 </center>
