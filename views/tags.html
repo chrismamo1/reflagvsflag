@@ -1,11 +1,26 @@
 {{define "TagsSelectionItems"}}
   {{range .}}
     {{if .Selected}}
-      <option selected>{{.Tag}}</option>
+      <option value="{{.Tag}}" selected>{{.Tag}}</option>
     {{- else}}
-      <option>{{.Tag}}</option>
+      <option value="{{.Tag}}">{{.Tag}}</option>
     {{- end}}
   {{end}}
+{{end}}
+
+{{define "TagsSelection"}}
+<script
+  src="https://raw.githubusercontent.com/wenzhixin/multiple-select/master/multiple-select.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+<select id="tags" name="tags" multiple="multiple">
+  {{template "TagsSelectionItems" .}}
+</select>
+<script>
+  $('select').multipleSelect();
+</script>
 {{end}}
 
 {{define "TagIndicatorItem"}}
