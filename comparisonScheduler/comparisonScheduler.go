@@ -140,7 +140,10 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         FROM
             views,
             (SELECT DISTINCT relevant_imgs.id, relevant_imgs.heat, relevant_imgs.tag
-             FROM (SELECT id, heat, tag FROM images LEFT OUTER JOIN image_tags ON (images.id = image_tags.image)) relevant_imgs, given_tags
+             FROM
+                (SELECT id, heat, tag
+                 FROM images
+                 LEFT OUTER JOIN image_tags ON (images.id = image_tags.image)) relevant_imgs, given_tags
              WHERE relevant_imgs.tag IN (SELECT tag FROM given_tags) OR relevant_imgs.tag IS NULL) imgs
         WHERE "user" = $1 AND (tag IN (SELECT * FROM given_tags))
         GROUP BY (id, s_heat)
@@ -148,7 +151,17 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
     `
     if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst); err != nil {
         log.Println(err)
-        query := `SELECT id FROM images ORDER BY heat ASC, RANDOM() LIMIT 2`
+        query := `
+            SELECT imgs.id
+            FROM (
+                SELECT id, heat
+                FROM images
+                LEFT OUTER JOIN image_tags ON images.id = image_tags.image
+                WHERE tag IN (SELECT tag FROM given_images) OR tag IS NULL) imgs
+            WHERE
+            ORDER BY imgs.heat ASC, RANDOM()
+            LIMIT 2
+        `
         rows, err := tx.Query(query)
         if err != nil {
             log.Fatal("Error selecting totally random elements in NextRequest: ", err)
@@ -166,7 +179,14 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         query := `
             SELECT id
             FROM
-                (SELECT * FROM images ORDER BY ABS(elo-$1) ASC LIMIT 10) tbl
+                (SELECT *
+                 FROM (
+                     SELECT elo
+                     FROM images
+                     LEFT OUTER JOIN image_tags ON images.id = image_tags.image
+                     WHERE tag IN (SELECT tag FROM given_images) OR tag IS NULL) imgs
+                 ORDER BY ABS(elo-$1) ASC
+                 LIMIT 10) tbl
             ORDER BY RANDOM() LIMIT 1;
         `
         if err := tx.QueryRow(query).Scan(&ids.Snd); err != nil {
