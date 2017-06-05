@@ -107,7 +107,8 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
     defer func() {
         tx.Exec("DROP TABLE given_tags")
         tx.Commit()
-    }
+    }()
+
     if err != nil {
         log.Fatal("Error beginning a transaction in NextRequest: ", err)
     }
