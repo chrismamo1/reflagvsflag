@@ -10,6 +10,7 @@ import (
     //"runtime"
     "strconv"
     "html/template"
+    "strings"
     "time"
     "github.com/gorilla/mux"
     _ "github.com/lib/pq"
@@ -82,9 +83,8 @@ func initDb() *sql.DB {
         FOREIGN KEY (fst) REFERENCES images(id),
         FOREIGN KEY (snd) REFERENCES images(id),
         CHECK (fst <> snd));
-    CREATE TABLE IF NOT EXISTS sort_iterations (
-        id INT PRIMARY KEY NOT NULL DEFAULT(1) CHECK (id = 1),
-        count int NOT NULL);
+    CREATE TABLE IF NOT EXISTS tags (
+        name TEXT NOT NULL);
     INSERT INTO sort_iterations (count) VALUES (0) ON CONFLICT DO NOTHING;
     TRUNCATE scheduler;
     UPDATE exposure SET heat = 0;
@@ -301,10 +301,13 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
         First template.HTML
         SecondId int
         Second template.HTML
+        Tags []string
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
-        ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr))
+        tags := strings.Split(req.FormValue("tags"), ",")
+
+        ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), tags)
 
         bumpExposure := func(user *users.User, img things.ID) {
             var exists bool
@@ -339,7 +342,8 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
                 FirstId: int(left.Id),
                 First: things.RenderNormal(left),
                 SecondId: int(right.Id),
-                Second: things.RenderNormal(right) },
+                Second: things.RenderNormal(right),
+                Tags: things.GetTags(db) },
             Style: "judge" }
         tmpl.ExecuteTemplate(writer, "container", tmplParams)
         /*page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))

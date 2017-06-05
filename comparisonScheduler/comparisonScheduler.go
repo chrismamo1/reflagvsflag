@@ -102,7 +102,28 @@ func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
     }
 }
 
-func (this *Scheduler) NextRequest(user users.User) things.IDPair {
+func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair {
+    tx, err := this.db.Begin()
+    defer tx.Commit()
+    if err != nil {
+        log.Fatal("Error beginning a transaction in NextRequest: ", err)
+    }
+
+    statement := `CREATE TEMPORARY TABLE given_tags ( tag TEXT UNIQUE );`
+    if _, err := tx.Exec(statement); err != nil {
+        log.Fatal("Error making a temporary table to hold tags in NextRequest: ", err)
+    }
+
+    if _, err := tx.Exec(`INSERT INTO given_tags (tag) VALUES (NULL)`); err != nil {
+        log.Fatal("Error adding null to the temp table: ", err)
+    }
+
+    for _, t := range(tags) {
+        if _, err := tx.Exec(`INSERT INTO given_tags (tag) VALUES ($1)`, t); err != nil {
+            log.Fatal("Error adding a tag to the temp table: ", err)
+        }
+    }
+
     rand.Seed(time.Now().UnixNano())
     var ids things.IDPair
 
@@ -113,13 +134,13 @@ func (this *Scheduler) NextRequest(user users.User) things.IDPair {
         query := `
             SELECT id, COALESCE(views.heat, 0) + COALESCE(images.heat, 0) AS s_heat
             FROM views, images
-            WHERE "user" = $1
+            WHERE "user" = $1 AND tag IN given_tags
             GROUP BY (id, s_heat)
             ORDER BY s_heat ASC LIMIT 1
         `
-        if err := this.db.QueryRow(query, user.Id).Scan(&ids.Fst); err != nil {
+        if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst); err != nil {
             query := `SELECT id FROM images ORDER BY heat ASC, RANDOM() LIMIT 2`
-            rows, err := this.db.Query(query)
+            rows, err := tx.Query(query)
             if err != nil {
                 log.Fatal("Error selecting totally random elements in NextRequest: ", err)
             }
@@ -138,11 +159,11 @@ func (this *Scheduler) NextRequest(user users.User) things.IDPair {
                     (SELECT * FROM images ORDER BY ABS(elo-$1) ASC LIMIT 10) tbl
                 ORDER BY RANDOM() LIMIT 1;
             `
-            this.db.QueryRow(query).Scan(&ids.Snd)
+            tx.QueryRow(query).Scan(&ids.Snd)
         }
     }
-    statement := `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
-    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, user.Id); err != nil {
+    statement = `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
+    if _, err := tx.Exec(statement, ids.Fst, ids.Snd, user.Id); err != nil {
         log.Fatal("Error trying to add an element to the schedule: ", err)
     }
 

@@ -34,6 +34,9 @@
           <li class="pure-menu-item menu-item-divided">
             <a class="pure-menu-link" href="https://medium.com/@christophermcalpine/re-flagvsflag-830917fac80a">About</a>
           </li>
+          <li class="pure-menu-item">
+            <a class="pure-menu-link" href="/upload">Upload a flag</a>
+          </li>
           <li class="pure-menu-item menu-item-divided">
             <a class="pure-menu-link" href="#">FAQ</a>
           </li>
@@ -44,4 +47,10 @@
   </body>
 </html>
 
+{{end}}
+
+{{define "CategoriesSelectionItemTemplate"}}
+  {{range .}}
+  <option>{{.}}</option>
+  {{end}}
 {{end}}

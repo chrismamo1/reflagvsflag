@@ -328,3 +328,18 @@ func GetRandomPairAboveIndex(db *sql.DB, index int) IDPair {
     fmt.Printf("random pair: %d, %d\n", ids.Fst, ids.Snd)
     return ids
 }
+
+func GetTags(db *sql.DB) []string {
+    var tags []string
+    query := `SELECT name FROM tags`
+    rows, err := db.Query(query)
+    if err != nil {
+        log.Fatal("Error while trying to query tags: ", err)
+    }
+    for rows.Next() {
+        var tag string
+        rows.Scan(&tag)
+        tags = append(tags, tag)
+    }
+    return tags
+}

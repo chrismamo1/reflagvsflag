@@ -2,7 +2,7 @@
 
 <div id="content" class="pure-g">
   <div class="pure-u-2-5">
-    <a href="/vote?winner={{.FirstId}}&loser={{.SecondId}}">
+    <a onClick="submitVote({{.FirstId}}, {{.SecondId}});">
       {{.First}}
     </a>
   </div>
@@ -12,10 +12,29 @@
     </div>
   </div>
   <div class="pure-u-2-5">
-    <a href="/vote?loser={{.FirstId}}&winner={{.SecondId}}">
+    <a onClick="submitVote({{.SecondId}}, {{.FirstId}});">
       {{.Second}}
     </a>
   </div>
+  <div>
+    <form class="pure-form" action="/vote" method="get" id="the_form">
+      <label for="tags">Tags</label>
+      <select id="tags" multiple>
+        {{template "CategoriesSelectionItemTemplate" .Tags}}
+      </select>
+      <input type="hidden" id="winner">
+      <input type="hidden" id="loser">
+    </form>
+  </div>
 </div>
+
+<script>
+function submitVote(winner, loser) {
+  document.getElementById("winner").value = winner;
+  document.getElementById("loser").value = loser;
+
+  document.getElementById("the_form").submit();
+}
+</script>
 
 {{end}}
