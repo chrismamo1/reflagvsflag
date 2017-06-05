@@ -1,9 +1,9 @@
 {{define "TagsSelectionItems"}}
   {{range .}}
     {{if .Selected}}
-      <option>{{.Tag}}</option>
-    {{- else}}
       <option selected>{{.Tag}}</option>
+    {{- else}}
+      <option>{{.Tag}}</option>
     {{- end}}
   {{end}}
 {{end}}
