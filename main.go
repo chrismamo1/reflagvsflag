@@ -217,12 +217,14 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
     type CParams struct {
         TotalVotes int
-        TotalQuickSortIterations int
         TotalUsers int
+        EloStdDev float64
+        TotalFlags int
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
-        var totalVotes, totalUsers, totalQuickSortIterations int
+        var totalVotes, totalUsers, totalFlags int
+        var eloStdDev float64
         users.GetByAddr(db, req.RemoteAddr)
 
         query := `SELECT COUNT(*) FROM votes;`
@@ -235,9 +237,14 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
             log.Fatal("Error trying to get the total number of users: ", err)
         }
 
-        query = `SELECT count FROM sort_iterations;`
-        if err := db.QueryRow(query).Scan(&totalQuickSortIterations); err != nil {
-            log.Fatal("Error trying to get the total number of users: ", err)
+        query = `SELECT STDDEV(elo) FROM images;`
+        if err := db.QueryRow(query).Scan(&eloStdDev); err != nil {
+            log.Fatal("Error trying to get the standard deviation for Elo's: ", err)
+        }
+
+        query = `SELECT COUNT(*) FROM images;`
+        if err := db.QueryRow(query).Scan(&totalFlags); err != nil {
+            log.Fatal("Error trying to get the total number of flags: ", err)
         }
 
         tmplParams := struct {
@@ -245,7 +252,8 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
             Style string
         } { ContentParams: CParams {
                 TotalVotes: totalVotes,
-                TotalQuickSortIterations: totalQuickSortIterations,
+                EloStdDev: eloStdDev,
+                TotalFlags: totalFlags,
                 TotalUsers: totalUsers },
             Style: "stats" }
         tmpl.ExecuteTemplate(writer, "container", tmplParams)
