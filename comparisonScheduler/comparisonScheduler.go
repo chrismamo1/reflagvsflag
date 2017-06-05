@@ -127,42 +127,38 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
     rand.Seed(time.Now().UnixNano())
     var ids things.IDPair
 
-    if rand.Intn(10) == 0 {
-        // 10% chance of an "upset match"
-        ids = things.GetRandomPair(this.db)
+    query := `
+        SELECT id, COALESCE(views.heat, 0) + COALESCE(images.heat, 0) AS s_heat
+        FROM views, images
+        WHERE "user" = $1 AND (tag IN (SELECT * FROM given_tags))
+        GROUP BY (id, s_heat)
+        ORDER BY s_heat ASC LIMIT 1
+    `
+    if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst); err != nil {
+        log.Println(err)
+        query := `SELECT id FROM images ORDER BY heat ASC, RANDOM() LIMIT 2`
+        rows, err := tx.Query(query)
+        if err != nil {
+            log.Fatal("Error selecting totally random elements in NextRequest: ", err)
+        }
+        rows.Next()
+        if err := rows.Scan(&ids.Fst); err != nil {
+            log.Fatal("Error while scanning the first ID in NextRequest: ", err)
+        }
+        rows.Next()
+        if err := rows.Scan(&ids.Snd); err != nil {
+            log.Fatal("Error while scanning the second ID in NextRequest: ", err)
+        }
     } else {
         query := `
-            SELECT id, COALESCE(views.heat, 0) + COALESCE(images.heat, 0) AS s_heat
-            FROM views, images
-            WHERE "user" = $1 AND (tag IN (SELECT * FROM given_tags))
-            GROUP BY (id, s_heat)
-            ORDER BY s_heat ASC LIMIT 1
+            SELECT id
+            FROM
+                (SELECT * FROM images ORDER BY ABS(elo-$1) ASC LIMIT 10) tbl
+            ORDER BY RANDOM() LIMIT 1;
         `
-        if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst); err != nil {
-            log.Println(err)
-            query := `SELECT id FROM images ORDER BY heat ASC, RANDOM() LIMIT 2`
-            rows, err := tx.Query(query)
-            if err != nil {
-                log.Fatal("Error selecting totally random elements in NextRequest: ", err)
-            }
-            rows.Next()
-            if err := rows.Scan(&ids.Fst); err != nil {
-                log.Fatal("Error while scanning the first ID in NextRequest: ", err)
-            }
-            rows.Next()
-            if err := rows.Scan(&ids.Snd); err != nil {
-                log.Fatal("Error while scanning the second ID in NextRequest: ", err)
-            }
-        } else {
-            query := `
-                SELECT id
-                FROM
-                    (SELECT * FROM images ORDER BY ABS(elo-$1) ASC LIMIT 10) tbl
-                ORDER BY RANDOM() LIMIT 1;
-            `
-            tx.QueryRow(query).Scan(&ids.Snd)
-        }
+        tx.QueryRow(query).Scan(&ids.Snd)
     }
+
     statement = `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
     if _, err := tx.Exec(statement, ids.Fst, ids.Snd, user.Id); err != nil {
         log.Fatal("Error trying to add an element to the schedule: ", err)
