@@ -4,7 +4,9 @@ import (
     "database/sql"
     "errors"
     "log"
-    "runtime"
+    "math"
+    "math/rand"
+    "time"
     _ "github.com/lib/pq"
     "github.com/chrismamo1/reflagvsflag/things"
     "github.com/chrismamo1/reflagvsflag/users")
@@ -25,7 +27,7 @@ type Scheduler struct {
 
 func (this *Scheduler) hasAnyRequests() bool {
     var status bool
-    query := `SELECT EXISTS(SELECT * FROM scheduler LIMIT 1)`
+    query := `SELECT EXISTS(SELECT * FROM schedule LIMIT 1)`
     if err := this.db.QueryRow(query).Scan(&status); err != nil {
         log.Fatal("Error while trying to see if the scheduler table has anything in it: ", err)
     }
@@ -43,50 +45,9 @@ func (this *Scheduler) getMinPlacement() int {
     return placement
 }
 
-func (this *Scheduler) getMaxPlacement() int {
-    placement := -1
-    if this.hasAnyRequests() {
-        query := `select MAX(placement) FROM scheduler`
-        if err := this.db.QueryRow(query).Scan(&placement); err != nil {
-            log.Fatal("Error while getting the max placement from the scheduler while appending a request: ", err)
-        }
-    }
-    return placement
-}
-
-func (this *Scheduler) prependRequest(ids things.IDPair, p Priority) {
-    placement := this.getMinPlacement() - 1
-    statement := `
-        INSERT INTO scheduler (fst, snd, placement, priority)
-            VALUES
-                (   $1,
-                    $2,
-                    $3,
-                    $4);`
-    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, placement, p); err != nil {
-        log.Fatal("Error while inserting a request at the front of the queue: ", err)
-    }
-    return
-}
-
-func (this *Scheduler) appendRequest(ids things.IDPair, p Priority) {
-    placement := this.getMaxPlacement() + 1
-    statement := `
-        INSERT INTO scheduler (fst, snd, placement, priority)
-            VALUES
-                (   $1,
-                    $2,
-                    $3,
-                    $4);`
-    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, placement, p); err != nil {
-        log.Fatal("Error while inserting a request at the back of the queue: ", err)
-    }
-    return
-}
-
 func (this *Scheduler) hasRequest(ids things.IDPair) bool {
     var status bool
-    query := `SELECT EXISTS(SELECT * FROM scheduler WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1) LIMIT 1)`
+    query := `SELECT EXISTS(SELECT * FROM schedule WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1) LIMIT 1)`
     if err := this.db.QueryRow(query, ids.Fst, ids.Snd).Scan(&status); err != nil {
         log.Fatal("Error while trying to determine if the scheduler contains a request: ", err)
     }
@@ -94,7 +55,7 @@ func (this *Scheduler) hasRequest(ids things.IDPair) bool {
 }
 
 func (this *Scheduler) rmRequest(ids things.IDPair) {
-    statement := `DELETE FROM scheduler WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1)`
+    statement := `DELETE FROM schedule WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1)`
     if _, err := this.db.Exec(statement, ids.Fst, ids.Snd); err != nil {
         log.Fatal("Error while trying to delete a scheduler request: ", err)
     }
@@ -104,112 +65,88 @@ func (this *Scheduler) HasRequest(ids things.IDPair) bool {
     return this.hasRequest(ids)
 }
 
-func (this *Scheduler) RequestComparison(ids things.IDPair, p Priority) {
-    cmp := 0
-    if cmp = things.GetComparison(this.db, ids.Fst, ids.Snd); cmp < 0 {
-        cmp = -cmp
-    }
-    if cmp > this.pointlessThreshold {
-        return
-    }
-
-    log.Printf("Requesting a comparison for %d, %d\n", int(ids.Fst), int(ids.Snd))
-    if p == PLow || p == PMedium || p == PMarginal {
-        this.appendRequest(ids, p)
-    } else if p == PHigh {
-        this.prependRequest(ids, p)
-    }
-
-    if !this.hasRequest(ids) {
-        log.Fatal(errors.New("something is horribly wrong with the scheduler"))
-    }
-}
-
-func (this *Scheduler) FillRequest(ids things.IDPair) {
-    log.Printf("Filling a request for %d, %d\n", int(ids.Fst), int(ids.Snd))
-    this.rmRequest(ids)
+func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
+    ids := things.IDPair{Fst: winner, Snd: loser}
+    log.Printf("Filling a request for %d, %d\n", int(winner), int(loser))
     if this.hasRequest(ids) {
-        log.Fatal(errors.New("rmRequest doesn't work"))
+        var elo1, elo2 float64
+        query := `SELECT elo FROM images WHERE id = $1;`
+        if err := this.db.QueryRow(query, winner).Scan(&elo1); err != nil {
+            log.Fatal("Error getting 1st elo in FillRequest: ", err)
+        }
+        if err := this.db.QueryRow(query, loser).Scan(&elo2); err != nil {
+            log.Fatal("Error getting 2nd elo in FillRequest: ", err)
+        }
+        r1 := math.Pow(10.0, elo1 / 400)
+        r2 := math.Pow(10.0, elo2 / 400)
+        e1 := r1 / (r1 + r2)
+        e2 := r2 / (r1 + r2)
+        s1 := 1.0
+        s2 := 0.0
+        elo1 = elo1 + 32.0 * (s1 - e1)
+        elo2 = elo2 + 32.0 * (s2 - e2)
+        log.Printf("New ELO for image %d: %f\n", int(winner), elo1)
+        log.Printf("New ELO for image %d: %f\n", int(loser), elo2)
+        statement := "UPDATE images SET elo = $1 WHERE id = $2"
+        if _, err := this.db.Exec(statement, elo1, winner); err != nil {
+            log.Fatal("Error while trying to update an ELO value: ", err)
+        }
+        statement = "UPDATE images SET elo = $1 WHERE id = $2"
+        if _, err := this.db.Exec(statement, elo2, loser); err != nil {
+            log.Fatal("Error while trying to update an ELO value: ", err)
+        }
+        this.rmRequest(ids)
+        if this.hasRequest(ids) {
+            log.Fatal(errors.New("rmRequest doesn't work"))
+        }
     }
 }
 
-func (this *Scheduler) logPairsWithHeats(user users.User) {
-    log.Printf("Pairs with heats:\n")
-    query := `
-        SELECT
-            fst, snd, SUM(heat) AS s_heat
-            FROM scheduler, exposure
-            WHERE ("user" = $1 AND (image = fst OR image = snd))
-            GROUP BY GROUPING SETS ((fst, snd));
-    `
-    rows, err := this.db.Query(query, user.Id)
-    if err != nil {
-        log.Fatal("Error querying rows to log: ", err)
-    }
-    for rows.Next() {
-        var fst, snd, heat int
-        rows.Scan(&fst, &snd, &heat)
-        log.Printf("\t%d, %d, heat = %d\n", fst, snd, heat)
-    }
-}
-
-func (this *Scheduler) NextRequest(user users.User) *things.IDPair {
+func (this *Scheduler) NextRequest(user users.User) things.IDPair {
+    rand.Seed(time.Now().UnixNano())
     var ids things.IDPair
-    var id, placement, emptySum int
-    var p Priority
 
-    for !this.hasAnyRequests() {
-        runtime.Gosched()
+    if rand.Intn(10) == 0 {
+        // 10% chance of an "upset match"
+        ids = things.GetRandomPair(this.db)
+    } else {
+        query := `
+            SELECT id, COALESCE(views.heat, 0) + COALESCE(images.heat, 0) AS s_heat
+            FROM views, images
+            WHERE "user" = $1
+            GROUP BY (id, s_heat)
+            ORDER BY s_heat ASC LIMIT 1
+        `
+        if err := this.db.QueryRow(query, user.Id).Scan(&ids.Fst); err != nil {
+            query := `SELECT id FROM images ORDER BY heat ASC, RANDOM() LIMIT 2`
+            rows, err := this.db.Query(query)
+            if err != nil {
+                log.Fatal("Error selecting totally random elements in NextRequest: ", err)
+            }
+            rows.Next()
+            if err := rows.Scan(&ids.Fst); err != nil {
+                log.Fatal("Error while scanning the first ID in NextRequest: ", err)
+            }
+            rows.Next()
+            if err := rows.Scan(&ids.Snd); err != nil {
+                log.Fatal("Error while scanning the second ID in NextRequest: ", err)
+            }
+        } else {
+            query := `
+                SELECT id
+                FROM
+                    (SELECT * FROM images ORDER BY ABS(elo-$1) ASC LIMIT 10) tbl
+                ORDER BY RANDOM() LIMIT 1;
+            `
+            this.db.QueryRow(query).Scan(&ids.Snd)
+        }
+    }
+    statement := `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
+    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd, user.Id); err != nil {
+        log.Fatal("Error trying to add an element to the schedule: ", err)
     }
 
-    //this.logPairsWithHeats(user)
-
-    query := `
-        SELECT
-            id, fst, snd, priority, placement, SUM(heat) - priority AS s_heat
-        FROM scheduler, exposure
-        WHERE ("user" = $1 AND (image = fst OR image = snd))
-        GROUP BY ROLLUP (id, fst, snd, priority, placement)
-        ORDER BY
-            s_heat ASC,
-            placement ASC
-        LIMIT 1;
-    `
-    /*`
-        SELECT
-            "user", scheduler.id, scheduler.fst, scheduler.snd, exposure.image, exposure.heat
-            AS "user", sched_id, fst, snd, image, heat
-        FROM scheduler, exposure
-        WHERE "user" = $1
-        ORDER BY
-            SUM(SELECT heat FROM exposure WHERE "user" = $1 AND (image = fst OR image = snd)) ASC,
-            placement ASC
-        LIMIT 1`*/
-
-    if err := this.db.QueryRow(query, user.Id).Scan(&id, &ids.Fst, &ids.Snd, &p, &placement, &emptySum); err != nil {
-        log.Fatal("Error while selecting the highest priority scheduling request: ", err)
-        /*query := `
-            SELECT id, fst, snd, priority, placement
-            FROM scheduler
-            WHERE 
-        `*/
-    }
-
-    log.Printf("Selecting image pair with heat of %d\n", emptySum)
-
-    if p == PLow || p == PMarginal {
-        placement = this.getMaxPlacement() + 1
-    } else if p == PHigh {
-        placement = placement + 1
-    } else if p == PMedium {
-        placement = placement + 2
-    }
-    statement := `UPDATE scheduler SET placement = $1 WHERE id = $2`
-    if _, err := this.db.Exec(statement, placement, id); err != nil {
-        log.Fatal("Error while demoting a scheduling request: ", err)
-    }
-
-    return &ids
+    return ids;
 }
 
 func Make(db *sql.DB, pointlessAt int) *Scheduler {

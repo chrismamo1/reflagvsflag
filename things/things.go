@@ -30,6 +30,7 @@ type Thing struct {
     Desc string
     Index int
     Heat int
+    Elo float64
 }
 
 type Comparison struct {
@@ -198,7 +199,7 @@ func GetComparison(db *sql.DB, a ID, b ID) int {
 
 func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
     q := `
-    SELECT id, path, description, img_index, heat, name
+    SELECT id, path, description, img_index, heat, name, elo
     FROM images
     WHERE id = $1 OR id = $2;
     `
@@ -211,13 +212,13 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
 
     var img1,img2 Thing
     rows.Next();
-    err = rows.Scan(&img1.Id, &img1.Path, &img1.Desc, &img1.Index, &img1.Heat, &img1.Name)
+    err = rows.Scan(&img1.Id, &img1.Path, &img1.Desc, &img1.Index, &img1.Heat, &img1.Name, &img1.Elo)
     if err != nil {
         fmt.Println("A\n")
         log.Fatal(err)
     }
     rows.Next();
-    err = rows.Scan(&img2.Id, &img2.Path, &img2.Desc, &img2.Index, &img2.Heat, &img2.Name)
+    err = rows.Scan(&img2.Id, &img2.Path, &img2.Desc, &img2.Index, &img2.Heat, &img2.Name, &img2.Elo)
     if err != nil {
         fmt.Println("B\n")
         log.Fatal(err)
