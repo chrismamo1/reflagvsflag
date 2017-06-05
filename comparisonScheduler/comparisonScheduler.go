@@ -149,6 +149,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         if err := rows.Scan(&ids.Snd); err != nil {
             log.Fatal("Error while scanning the second ID in NextRequest: ", err)
         }
+        rows.Close()
     } else {
         query := `
             SELECT id
@@ -156,7 +157,9 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
                 (SELECT * FROM images ORDER BY ABS(elo-$1) ASC LIMIT 10) tbl
             ORDER BY RANDOM() LIMIT 1;
         `
-        tx.QueryRow(query).Scan(&ids.Snd)
+        if err := tx.QueryRow(query).Scan(&ids.Snd); err != nil {
+            log.Fatal("Error selecting: ", err)
+        }
     }
 
     statement = `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
