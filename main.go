@@ -295,7 +295,7 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 }
 
 func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
-    tmpl, err := template.ParseFiles("views/reflagvsflag.html", "views/judge.html")
+    tmpl, err := template.ParseFiles("views/tags.html", "views/reflagvsflag.html", "views/judge.html")
     if err != nil {
         log.Fatal("Error parsing the templates for JudgeHandler: ", err)
     }
@@ -359,7 +359,9 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
                 Second: things.RenderNormal(right),
                 TagSpecs: tagSpecs },
             Style: "judge" }
-        tmpl.ExecuteTemplate(writer, "container", tmplParams)
+        if err := tmpl.ExecuteTemplate(writer, "container", tmplParams); err != nil {
+            log.Fatal("Failure executing JudgeHandler template: ", err)
+        }
         /*page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))
         writer.Write([]byte(page))*/
     }
