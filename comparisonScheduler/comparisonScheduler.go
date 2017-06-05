@@ -158,7 +158,6 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
                 FROM images
                 LEFT OUTER JOIN image_tags ON images.id = image_tags.image
                 WHERE tag IN (SELECT tag FROM given_images) OR tag IS NULL) imgs
-            WHERE
             ORDER BY imgs.heat ASC, RANDOM()
             LIMIT 2
         `
