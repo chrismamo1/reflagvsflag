@@ -173,7 +173,10 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
         if err != nil {
             log.Fatal(err)
         }
-        writer.Header().Add("Location", "/judge")
+
+        target := "/judge?tags=" + req.FormValue("tags")
+
+        writer.Header().Add("Location", target)
         writer.WriteHeader(302)
         page := `
         <h1>Thanks for voting!</h1>
