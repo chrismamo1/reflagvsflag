@@ -134,7 +134,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         query := `
             SELECT id, COALESCE(views.heat, 0) + COALESCE(images.heat, 0) AS s_heat
             FROM views, images
-            WHERE "user" = $1 AND tag IN given_tags
+            WHERE "user" = $1 AND tag IN (SELECT * FROM given_tags)
             GROUP BY (id, s_heat)
             ORDER BY s_heat ASC LIMIT 1
         `
