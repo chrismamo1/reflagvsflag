@@ -219,42 +219,43 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
         TotalVotes int
         TotalUsers int
         EloStdDev float64
+        HeatStdDev float64
         TotalFlags int
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
-        var totalVotes, totalUsers, totalFlags int
-        var eloStdDev float64
+        var content CParams
         users.GetByAddr(db, req.RemoteAddr)
 
         query := `SELECT COUNT(*) FROM votes;`
-        if err := db.QueryRow(query).Scan(&totalVotes); err != nil {
+        if err := db.QueryRow(query).Scan(&content.TotalVotes); err != nil {
             log.Fatal("Error trying to get the total number of votes: ", err)
         }
 
         query = `SELECT COUNT(*) FROM users;`
-        if err := db.QueryRow(query).Scan(&totalUsers); err != nil {
+        if err := db.QueryRow(query).Scan(&content.TotalUsers); err != nil {
             log.Fatal("Error trying to get the total number of users: ", err)
         }
 
         query = `SELECT STDDEV(elo) FROM images;`
-        if err := db.QueryRow(query).Scan(&eloStdDev); err != nil {
+        if err := db.QueryRow(query).Scan(&content.EloStdDev); err != nil {
             log.Fatal("Error trying to get the standard deviation for Elo's: ", err)
         }
 
         query = `SELECT COUNT(*) FROM images;`
-        if err := db.QueryRow(query).Scan(&totalFlags); err != nil {
+        if err := db.QueryRow(query).Scan(&content.TotalFlags); err != nil {
             log.Fatal("Error trying to get the total number of flags: ", err)
+        }
+
+        query = `SELECT STDDEV(heat) FROM images;`
+        if err := db.QueryRow(query).Scan(&content.HeatStdDev); err != nil {
+            log.Fatal("Error trying to get the stddev of heat for all images: ", err)
         }
 
         tmplParams := struct {
             ContentParams CParams
             Style string
-        } { ContentParams: CParams {
-                TotalVotes: totalVotes,
-                EloStdDev: eloStdDev,
-                TotalFlags: totalFlags,
-                TotalUsers: totalUsers },
+        } { ContentParams: content,
             Style: "stats" }
         tmpl.ExecuteTemplate(writer, "container", tmplParams)
     }
