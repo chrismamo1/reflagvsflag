@@ -113,7 +113,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         log.Fatal("Error beginning a transaction in NextRequest: ", err)
     }
 
-    statement := `CREATE TEMPORARY TABLE IF NOT EXISTS given_tags ( tag TEXT UNIQUE );`
+    statement := `CREATE TEMPORARY TABLE IF NOT EXISTS given_tags ( tag TEXT UNIQUE, FOREIGN KEY (tag) REFERENCES tags(name) );`
     if _, err := tx.Exec(statement); err != nil {
         log.Fatal("Error making a temporary table to hold tags in NextRequest: ", err)
     }
@@ -136,8 +136,12 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
     var ids things.IDPair
 
     query := `
-        SELECT id, COALESCE(views.heat, 0) + COALESCE(images.heat, 0) AS s_heat
-        FROM views, images
+        SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat
+        FROM
+            views,
+            (SELECT DISTINCT relevant_imgs.id, relevant_imgs.heat, relevant_imgs.tag
+             FROM (SELECT id, heat, tag FROM images LEFT OUTER JOIN image_tags ON (images.id = image_tags.image)) relevant_imgs, given_tags
+             WHERE relevant_imgs.tag IN (SELECT tag FROM given_tags) OR relevant_imgs.tag IS NULL) imgs
         WHERE "user" = $1 AND (tag IN (SELECT * FROM given_tags))
         GROUP BY (id, s_heat)
         ORDER BY s_heat ASC LIMIT 1

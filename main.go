@@ -15,6 +15,7 @@ import (
     "github.com/gorilla/mux"
     _ "github.com/lib/pq"
     sched "github.com/chrismamo1/reflagvsflag/comparisonScheduler"
+    "github.com/chrismamo1/reflagvsflag/tags"
     "github.com/chrismamo1/reflagvsflag/things"
     "github.com/chrismamo1/reflagvsflag/users")
 
@@ -114,6 +115,7 @@ func loadImageStore(db *sql.DB) []things.Thing {
         if err != nil {
             log.Fatal(err)
         }
+        img.Tags = tags.GetTags(db, int(img.Id))
         imageStore = append(imageStore, img)
     }
     return imageStore
@@ -303,13 +305,23 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
         First template.HTML
         SecondId int
         Second template.HTML
-        Tags []string
+        TagSpecs []tags.UserTagSpec
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
-        tags := strings.Split(req.FormValue("tags"), ",")
+        userTags := strings.Split(req.FormValue("tags"), ",")
 
-        ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), tags)
+        tagSpecs := tags.GetAllTags(db)
+        for i, t := range(tagSpecs) {
+            for _, u := range(userTags) {
+                if strings.Compare(string(t.Tag), u) == 0 {
+                    tagSpecs[i].Selected = true
+                    break
+                }
+            }
+        }
+
+        ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), userTags)
 
         bumpExposure := func(user *users.User, img things.ID) {
             var exists bool
@@ -345,7 +357,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
                 First: things.RenderNormal(left),
                 SecondId: int(right.Id),
                 Second: things.RenderNormal(right),
-                Tags: things.GetTags(db) },
+                TagSpecs: tagSpecs },
             Style: "judge" }
         tmpl.ExecuteTemplate(writer, "container", tmplParams)
         /*page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))

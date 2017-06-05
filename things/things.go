@@ -6,6 +6,7 @@ import (
     "errors"
     "fmt"
     _ "github.com/lib/pq"
+    "github.com/chrismamo1/reflagvsflag/tags"
     "html/template"
     "io/ioutil"
     "log"
@@ -31,6 +32,7 @@ type Thing struct {
     Index int
     Heat int
     Elo float64
+    Tags []tags.Tag
 }
 
 type Comparison struct {
@@ -265,6 +267,9 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
     if err != nil {
         log.Fatal(err)
     }
+
+    img1.Tags = tags.GetTags(db, int(img1.Id))
+    img2.Tags = tags.GetTags(db, int(img2.Id))
 
     return img1,img2
 }

@@ -1,0 +1,25 @@
+{{define "content"}}
+
+<form id="content" class="pure-form">
+  <fieldset>
+    <legend>New Flag</legend>
+
+    <div class="pure-g">
+      <label for="flag-name">Name</label>
+      <input id="flag-name" type="text" placeholder="The Duchy of Grand Fenwick">
+      <span class="pure-form-message"><i>required</i></span>
+
+      <label for="flag-path">Image URL</label>
+      <input id="flag-path" class="pure-u-23-24" type="text">
+
+      <label for="category">Category</label>
+      <select id="category">
+        {{template "CategoriesSelectionItemTemplate" .Tags}}
+      </select>
+
+      <button type="submit" class="pure-button pure-button-primary">Submit</button>
+    </div>
+  </fieldset>
+</form>
+
+{{end}}

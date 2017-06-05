@@ -20,7 +20,7 @@
     <form class="pure-form" action="/vote" method="get" id="the_form">
       <label for="tags">Tags</label>
       <select id="tags" name="tags" multiple>
-        {{template "CategoriesSelectionItemTemplate" .Tags}}
+        {{template "TagsSelectionItems" .TagSpecs}}
       </select>
       <input type="hidden" name="winner" id="winner">
       <input type="hidden" name="loser" id="loser">

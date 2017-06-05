@@ -1,0 +1,23 @@
+{{define "TagsSelectionItems"}}
+  {{range .}}
+    {{if .Selected}}
+      <option>{{.Tag}}</option>
+    {{- else}}
+      <option selected>{{.Tag}}</option>
+    {{- end}}
+  {{end}}
+{{end}}
+
+{{define "TagIndicatorItem"}}
+<div class="rfvf-tag-indicator-item">
+  {{.Tag}}
+</div>
+{{end}}
+
+{{define "TagsIndicator"}}
+<div class="rfvf-tag-indicator">
+  {{range .}}
+    {{template "TagIndicatorItem" .}}
+  {{end}}
+</div>
+{{end}}
