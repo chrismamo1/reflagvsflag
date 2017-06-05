@@ -139,6 +139,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
             ORDER BY s_heat ASC LIMIT 1
         `
         if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst); err != nil {
+            log.Println(err)
             query := `SELECT id FROM images ORDER BY heat ASC, RANDOM() LIMIT 2`
             rows, err := tx.Query(query)
             if err != nil {
