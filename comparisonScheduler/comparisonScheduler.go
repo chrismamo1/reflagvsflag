@@ -83,8 +83,8 @@ func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
         e2 := r2 / (r1 + r2)
         s1 := 1.0
         s2 := 0.0
-        elo1 = elo1 + 32.0 * (s1 - e1)
-        elo2 = elo2 + 32.0 * (s2 - e2)
+        elo1 = elo1 + 10.0 * (s1 - e1)
+        elo2 = elo2 + 10.0 * (s2 - e2)
         log.Printf("New ELO for image %d: %f\n", int(winner), elo1)
         log.Printf("New ELO for image %d: %f\n", int(loser), elo2)
         statement := "UPDATE images SET elo = $1 WHERE id = $2"
