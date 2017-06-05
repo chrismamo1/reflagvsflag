@@ -113,7 +113,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         log.Fatal("Error beginning a transaction in NextRequest: ", err)
     }
 
-    statement := `CREATE TEMPORARY TABLE IF NOT EXISTS given_tags ( tag TEXT UNIQUE, FOREIGN KEY (tag) REFERENCES tags(name) );`
+    statement := `CREATE TEMPORARY TABLE IF NOT EXISTS given_tags ( tag TEXT UNIQUE );`
     if _, err := tx.Exec(statement); err != nil {
         log.Fatal("Error making a temporary table to hold tags in NextRequest: ", err)
     }
