@@ -39,7 +39,7 @@ type Comparison struct {
     Balance int
 }
 
-func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML {
+func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool) template.HTML {
     matched, err := regexp.MatchString(".*\\.url$", thing.Path)
     if err != nil {
         log.Fatal(err)
@@ -63,6 +63,46 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
             </video>
             `
         } else {
+            if showElo {
+                format = `
+                    <div style="padding: 5px">
+                        <center>
+                            <h3>{{.Name}} (ELO: {{.Elo}})</h3>
+                        </center>
+                        <img
+                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                            src='{{.Path}}'>
+                        </img>
+                    </div>
+                `
+            } else {
+                format = `
+                    <div style="padding: 5px">
+                        <center>
+                            <h3>{{.Name}}</h3>
+                        </center>
+                        <img
+                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                            src='{{.Path}}'>
+                        </img>
+                    </div>
+                `
+            }
+        }
+    } else {
+        if showElo {
+            format = `
+                <div style="padding: 5px">
+                    <center>
+                        <h3>{{.Name}} (ELO: {{.Elo}})</h3>
+                    </center>
+                    <img
+                        style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                        src='{{.Path}}'>
+                    </img>
+                </div>
+            `
+        } else {
             format = `
                 <div style="padding: 5px">
                     <center>
@@ -75,18 +115,6 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
                 </div>
             `
         }
-    } else {
-        format = `
-            <div style="padding: 5px">
-                <center>
-                    <h3>{{.Name}}</h3>
-                </center>
-                <img
-                    style='width: 100%; max-height: 100%; box-shadow: 0px 0px 3px black'
-                    src='{{.Path}}'>
-                </img>
-            </div>
-        `
         thing.Path = root + thing.Path
     }
     templ, err := template.New("image").Parse(format)
@@ -99,6 +127,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
         MaxHeight int
         Path string
         Name string
+        Elo float64
     }
 
     var params Parameters
@@ -106,6 +135,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
     params.MaxHeight = maxHeight
     params.Path = strings.Trim(thing.Path, "\n\r")
     params.Name = thing.Name
+    params.Elo = thing.Elo
 
     buffer := bytes.NewBufferString("")
 
@@ -117,11 +147,11 @@ func render(thing Thing, root string, maxWidth int, maxHeight int) template.HTML
 }
 
 func RenderSmall(thing Thing) template.HTML {
-    return render(thing, "", 200, 200)
+    return render(thing, "", 200, 200, true)
 }
 
 func RenderNormal(thing Thing) template.HTML {
-    return render(thing, "", 600, 600)
+    return render(thing, "", 600, 600, false)
 }
 
 func getHead2HeadComparison(db *sql.DB, a ID, b ID) (Comparison, error) {
