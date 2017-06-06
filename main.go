@@ -202,7 +202,11 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
         userTags := strings.Split(req.FormValue("tags"), ",")
         if len(userTags) < 1 {
-            userTags = []string{"Modern"}
+            if strings.Compare(req.FormValue("tags"), "") != 0 {
+                userTags = []string{req.FormValue("tags")}
+            } else {
+                userTags = []string{"Modern"}
+            }
         }
         users.GetByAddr(db, req.RemoteAddr)
 
