@@ -5,7 +5,7 @@
     display: inline-block;
     max-width: 75%;
     .pure-button {
-      width: 50%;
+      width: calc(50% - 3px);
       display: inline;
     }
   }
