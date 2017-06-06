@@ -193,7 +193,7 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 }
 
 func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
-    tmpl, err := template.ParseFiles("views/reflagvsflag.html", "views/ranks.html")
+    tmpl, err := template.ParseFiles("views/tags.html", "views/reflagvsflag.html", "views/ranks.html")
     if err != nil {
         log.Fatal("Error parsing the templates for RanksHandler: ", err)
     }
