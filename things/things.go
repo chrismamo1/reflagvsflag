@@ -348,3 +348,50 @@ func GetTags(db *sql.DB) []string {
     }
     return tags
 }
+
+func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
+    var tx *sql.Tx
+    tx, err := db.Begin()
+    if err != nil {
+        log.Fatal("Error starting a transaction in GetTransactionWithTags: ", err)
+    }
+
+    statement := `
+        CREATE TEMPORARY TABLE imgs (
+            id INTEGER,
+            path TEXT NOT NULL UNIQUE,
+            name TEXT,
+            description TEXT,
+            heat INT NOT NULL,
+            elo REAL NOT NULL DEFAULT(1000.0)
+        ) ON COMMIT DROP;
+        CREATE TEMPORARY TABLE given_tags (
+            tag TEXT UNIQUE
+        ) ON COMMIT DROP;
+    `
+    if _, err := tx.Exec(statement); err != nil {
+        log.Fatal("Error making temp tables in GetTransactionWithTags: ", err)
+    }
+
+    for _, t := range(tags) {
+        statement := `INSERT INTO given_tags (tag) VALUES ($1)`
+        if _, err := tx.Exec(statement, t); err != nil {
+            log.Fatal("Error adding a tag to given_tags in GetTransactionWithTags: ", err)
+        }
+    }
+
+    statement = `
+        INSERT INTO imgs (id, path, name, description, heat, elo)
+        SELECT id, path, name, description, heat, elo
+        FROM (
+            SELECT *
+            FROM images
+            LEFT OUTER JOIN image_tags ON images.id = image_tags.image
+            WHERE tag IN (SELECT tag FROM image_tags))
+    `
+    if _, err := tx.Exec(statement); err != nil {
+        log.Fatal("Error populating imgs in GetTransactionWithTags: ", err)
+    }
+
+    return tx
+}

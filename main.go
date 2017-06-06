@@ -100,8 +100,11 @@ func initDb() *sql.DB {
     return db
 }
 
-func loadImageStore(db *sql.DB) []things.Thing {
-    rows, err := db.Query("SELECT id, path, description, img_index, heat, name, elo FROM images ORDER BY elo DESC")
+func loadImageStore(db *sql.DB, ts []string) []things.Thing {
+    tx := things.GetTransactionWithTags(db, ts)
+    defer tx.Commit()
+
+    rows, err := tx.Query("SELECT id, path, description, img_index, heat, name, elo FROM images ORDER BY elo DESC")
     if err != nil {
         log.Fatal(err)
     }
@@ -197,9 +200,13 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
+        userTags := strings.Split(req.FormValue("tags"), ",")
+        if len(userTags) < 1 {
+            userTags = []string{"Modern"}
+        }
         users.GetByAddr(db, req.RemoteAddr)
 
-        store := loadImageStore(db)
+        store := loadImageStore(db, userTags)
 
         els := []template.HTML{}
 
@@ -313,6 +320,9 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 
     return func(writer http.ResponseWriter, req *http.Request) {
         userTags := strings.Split(req.FormValue("tags"), ",")
+        if len(userTags) < 1 {
+            userTags = []string{"Modern"}
+        }
 
         tagSpecs := tags.GetAllTags(db)
         for i, t := range(tagSpecs) {

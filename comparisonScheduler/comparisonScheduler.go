@@ -103,49 +103,19 @@ func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
 }
 
 func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair {
-    tx, err := this.db.Begin()
-    defer func() {
-        tx.Exec("DROP TABLE given_tags")
-        tx.Commit()
-    }()
-
-    if err != nil {
-        log.Fatal("Error beginning a transaction in NextRequest: ", err)
-    }
-
-    statement := `CREATE TEMPORARY TABLE IF NOT EXISTS given_tags ( tag TEXT UNIQUE );`
-    if _, err := tx.Exec(statement); err != nil {
-        log.Fatal("Error making a temporary table to hold tags in NextRequest: ", err)
-    }
-    statement = `TRUNCATE given_tags;`
-    if _, err := tx.Exec(statement); err != nil {
-        log.Fatal("Error truncating a temporary table to hold tags in NextRequest: ", err)
-    }
-
-    if _, err := tx.Exec(`INSERT INTO given_tags (tag) VALUES (NULL)`); err != nil {
-        log.Fatal("Error adding null to the temp table: ", err)
-    }
-
-    for _, t := range(tags) {
-        if _, err := tx.Exec(`INSERT INTO given_tags (tag) VALUES ($1)`, t); err != nil {
-            log.Fatal("Error adding a tag to the temp table: ", err)
-        }
-    }
+    tx := things.GetTransactionWithTags(this.db, tags)
+    defer tx.Commit()
 
     rand.Seed(time.Now().UnixNano())
+
     var ids things.IDPair
 
     query := `
         SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat
         FROM
             views,
-            (SELECT DISTINCT relevant_imgs.id, relevant_imgs.heat, relevant_imgs.tag
-             FROM
-                (SELECT id, heat, tag
-                 FROM images
-                 LEFT OUTER JOIN image_tags ON (images.id = image_tags.image)) relevant_imgs, given_tags
-             WHERE relevant_imgs.tag IN (SELECT tag FROM given_tags) OR relevant_imgs.tag IS NULL) imgs
-        WHERE "user" = $1 AND (tag IN (SELECT * FROM given_tags))
+            imgs
+        WHERE "user" = $1 OR "user" IS NULL
         GROUP BY (id, s_heat)
         ORDER BY s_heat ASC LIMIT 1
     `
@@ -153,11 +123,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         log.Println(err)
         query := `
             SELECT imgs.id
-            FROM (
-                SELECT id, heat
-                FROM images
-                LEFT OUTER JOIN image_tags ON images.id = image_tags.image
-                WHERE tag IN (SELECT tag FROM given_tags) OR tag IS NULL) imgs
+            FROM imgs
             ORDER BY imgs.heat ASC, RANDOM()
             LIMIT 2
         `
@@ -179,11 +145,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
             SELECT id
             FROM
                 (SELECT *
-                 FROM (
-                     SELECT elo
-                     FROM images
-                     LEFT OUTER JOIN image_tags ON images.id = image_tags.image
-                     WHERE tag IN (SELECT tag FROM given_tags) OR tag IS NULL) imgs
+                 FROM imgs
                  ORDER BY ABS(elo-$1) ASC
                  LIMIT 10) tbl
             ORDER BY RANDOM() LIMIT 1;
@@ -193,7 +155,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         }
     }
 
-    statement = `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
+    statement := `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
     if _, err := tx.Exec(statement, ids.Fst, ids.Snd, user.Id); err != nil {
         log.Fatal("Error trying to add an element to the schedule: ", err)
     }
