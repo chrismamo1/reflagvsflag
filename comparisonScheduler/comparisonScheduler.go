@@ -112,12 +112,12 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
     var elo float64
 
     query := `
-        SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat, COALESCE(elo)
+        SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat, elo
         FROM
             views,
             imgs
         WHERE "user" = $1
-        GROUP BY (id, s_heat)
+        GROUP BY (id, s_heat, elo)
         ORDER BY s_heat ASC LIMIT 1
     `
     if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat, &elo); err != nil {
