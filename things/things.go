@@ -395,7 +395,7 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
             SELECT *
             FROM images
             LEFT OUTER JOIN image_tags ON images.id = image_tags.image
-            WHERE tag IN (SELECT tag FROM image_tags)) i
+            WHERE tag IN (SELECT tag FROM given_tags)) i
     `
     if _, err := tx.Exec(statement); err != nil {
         log.Fatal("Error populating imgs in GetTransactionWithTags: ", err)
