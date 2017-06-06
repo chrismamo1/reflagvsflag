@@ -109,17 +109,18 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
     rand.Seed(time.Now().UnixNano())
 
     var ids things.IDPair
+    var s_heat int
 
     query := `
         SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat
         FROM
             views,
             imgs
-        WHERE "user" = $1 OR "user" IS NULL
+        WHERE "user" = $1
         GROUP BY (id, s_heat)
         ORDER BY s_heat ASC LIMIT 1
     `
-    if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst); err != nil {
+    if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat); err != nil {
         log.Println(err)
         query := `
             SELECT imgs.id
