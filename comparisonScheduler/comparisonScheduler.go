@@ -104,7 +104,6 @@ func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
 
 func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair {
     tx := things.GetTransactionWithTags(this.db, tags)
-    defer tx.Commit()
 
     rand.Seed(time.Now().UnixNano())
 
@@ -161,6 +160,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         log.Fatal("Error trying to add an element to the schedule: ", err)
     }
 
+    tx.Commit()
     return ids;
 }
 
