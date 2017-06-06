@@ -273,10 +273,10 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
         log.Fatal(err)
     }
 
-    img1.Tags = tags.GetTags(tx, int(img1.Id))
-    img2.Tags = tags.GetTags(tx, int(img2.Id))
-
     tx.Commit()
+
+    img1.Tags = tags.GetTags(db, int(img1.Id))
+    img2.Tags = tags.GetTags(db, int(img2.Id))
 
     return img1,img2
 }

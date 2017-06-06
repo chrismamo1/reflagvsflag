@@ -107,7 +107,6 @@ func loadImageStore(db *sql.DB, ts []string) []things.Thing {
     if err != nil {
         log.Fatal(err)
     }
-    defer rows.Close()
 
     var imageStore []things.Thing
 
@@ -117,10 +116,14 @@ func loadImageStore(db *sql.DB, ts []string) []things.Thing {
         if err != nil {
             log.Fatal(err)
         }
-        img.Tags = tags.GetTags(tx, int(img.Id))
         imageStore = append(imageStore, img)
     }
+    rows.Close()
     tx.Commit()
+
+    for i, img := range(imageStore) {
+        imageStore[i].Tags = tags.GetTags(db, int(img.Id))
+    }
     return imageStore
 }
 
