@@ -112,7 +112,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
     var elo float64
 
     query := `
-        SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat, elo
+        SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat, COALESCE(elo)
         FROM
             views,
             imgs
