@@ -154,6 +154,11 @@ body {
   border-right: 1px solid rgba(0,0,0,0.2);
   margin-left: auto;
   margin-right: auto;
+  box-sizing: border-box;
+}
+
+.pure-button-group {
+  box-sizing: border-box;
 }
 
 /*.rfvf-tag-selector-item {
