@@ -1,6 +1,7 @@
 {{define "TagsSelectionItems"}}
   {{range .}}
     <button
+      type="button"
       value="{{.Tag}}"
       onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-secondary') } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-secondary')}; updateFormValues();"
   {{if .Selected}}
