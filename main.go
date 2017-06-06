@@ -104,7 +104,7 @@ func loadImageStore(db *sql.DB, ts []string) []things.Thing {
     tx := things.GetTransactionWithTags(db, ts)
     defer tx.Commit()
 
-    rows, err := tx.Query("SELECT id, path, description, img_index, heat, name, elo FROM images ORDER BY elo DESC")
+    rows, err := tx.Query("SELECT id, path, description, img_index, heat, name, elo FROM imgs ORDER BY elo DESC")
     if err != nil {
         log.Fatal(err)
     }
