@@ -36,7 +36,6 @@ func GetTags(tx *sql.Tx, thing int /* should be a things.ID */) []Tag {
 
 func GetAllTags(db *sql.DB) []UserTagSpec {
     rows, err := db.Query(`SELECT name FROM tags`)
-    defer rows.Close()
     if err != nil {
         log.Fatal("Error selecting rows from tags in GetAllTags: ", err)
     }
@@ -51,6 +50,8 @@ func GetAllTags(db *sql.DB) []UserTagSpec {
         t.Selected = false
         rval = append(rval, t)
     }
+
+    rows.Close()
 
     return rval
 }
