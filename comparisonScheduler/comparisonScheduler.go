@@ -109,9 +109,10 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
 
     var ids things.IDPair
     var s_heat int
+    var elo float64
 
     query := `
-        SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat
+        SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat, elo
         FROM
             views,
             imgs
@@ -119,7 +120,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         GROUP BY (id, s_heat)
         ORDER BY s_heat ASC LIMIT 1
     `
-    if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat); err != nil {
+    if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat, &elo); err != nil {
         log.Println(err)
         query := `
             SELECT imgs.id
@@ -150,7 +151,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
                  LIMIT 10) tbl
             ORDER BY RANDOM() LIMIT 1;
         `
-        if err := tx.QueryRow(query).Scan(&ids.Snd); err != nil {
+        if err := tx.QueryRow(query, elo).Scan(&ids.Snd); err != nil {
             log.Fatal("Error selecting: ", err)
         }
     }
