@@ -4,10 +4,10 @@
       value="{{.Tag}}"
       onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-active') } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-active')}; updateFormValues();"
   {{if .Selected}}
-      class="pure-button pure-button-active"
+      class="pure-button pure-button-active rfvf-tag-selector-item"
       selected="true">
   {{- else}}
-      class="pure-button"
+      class="pure-button rfvf-tag-selector-item"
       selected="false">
   {{- end}}
       {{.Tag}}
@@ -16,7 +16,7 @@
 {{end}}
 
 {{define "TagsSelection"}}
-  <div role="pure-button-group">
+  <div class="pure-button-group" role="group" aria-label="Selected Tags">
     {{template "TagsSelectionItems" .}}
   </div>
 {{end}}

@@ -7,8 +7,8 @@
     <div class="pure-u-1" id="tagbar_label">
       Judging Tags
     </div>
+    {{template "TagsSelection" .TagSpecs}}
     <form class="pure-form" action="/vote" method="get" id="the_form">
-      {{template "TagsSelection" .TagSpecs}}
       <input type="hidden" name="tags" id="tags">
       <input type="hidden" name="winner" id="winner">
       <input type="hidden" name="loser" id="loser">
