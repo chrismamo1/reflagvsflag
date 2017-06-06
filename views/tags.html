@@ -4,10 +4,10 @@
       value="{{.Tag}}"
       onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-secondary') } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-secondary')}; updateFormValues();"
   {{if .Selected}}
-      class="pure-u-lg-1-2 pure-u-1 pure-button pure-button-secondary rfvf-tag-selector-item"
+      class="pure-u-1 pure-button pure-button-secondary rfvf-tag-selector-item"
       selected="true">
   {{- else}}
-      class="pure-u-lg-1-2 pure-u-1 pure-button rfvf-tag-selector-item"
+      class="pure-u-1 pure-button rfvf-tag-selector-item"
       selected="false">
   {{- end}}
       {{.Tag}}
