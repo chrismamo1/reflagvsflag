@@ -177,7 +177,9 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPai
             ORDER BY RANDOM() LIMIT 1;
         `
         if err := tx.QueryRow(query, elo, ids.Fst).Scan(&ids.Snd); err != nil {
-            log.Fatal("Error selecting: ", err)
+            log.Println("Error selecting: ", err)
+            tx.Commit()
+            return
         }
     }
 
