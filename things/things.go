@@ -362,6 +362,7 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
             path TEXT NOT NULL UNIQUE,
             name TEXT,
             description TEXT,
+            img_index INT,
             heat INT NOT NULL,
             elo REAL NOT NULL DEFAULT(1000.0)
         ) ON COMMIT DROP;
@@ -381,8 +382,8 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
     }
 
     statement = `
-        INSERT INTO imgs (id, path, name, description, heat, elo)
-        SELECT id, path, name, description, heat, elo
+        INSERT INTO imgs (id, path, name, description, img_index, heat, elo)
+        SELECT id, path, name, description, img_index, heat, elo
         FROM (
             SELECT *
             FROM images
