@@ -1,5 +1,24 @@
 {{define "scriptUpdateFormValues"}}
 <script>
+function toggleTagSelectorValues() {
+  var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
+
+  var i;
+  for (i = 0; i < tagSels.length; i++) {
+    if (tagSels[i].getAttribute('value') == 'Select All' || tagSels[i].getAttribute('value') == 'Unselect All') {
+      continue;
+    }
+    var isSelected = tagSels[i].getAttribute('selected');
+    if (isSelected == 'true') {
+      tagSels[i].setAttribute('selected', 'false');
+      tagSels[i].classList.remove('pure-button-secondary');
+    } else {
+      tagSels[i].setAttribute('selected', 'false');
+      tagSels[i].classList.add('pure-button-secondary');
+    }
+  }
+}
+
 function updateFormValues() {
   var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
 
@@ -7,11 +26,17 @@ function updateFormValues() {
   document.getElementById('tags').value = '';
   for (i = 0; i < tagSels.length - 1; i++) {
     if (tagSels[i].getAttribute('selected') == 'true') {
+      if (tagSels[i].getAttribute('value') == 'Select All' || tagSels[i].getAttribute('value') == 'Unselect All') {
+        continue;
+      }
       document.getElementById('tags').value += tagSels[i].getAttribute('value') + ',';
     }
   }
-  if (tagSels[i].getAttribute('selected') == 'true') {
-    document.getElementById('tags').value += tagSels[i].getAttribute('value');
+  if (tagSels[i].getAttribute('value') == 'Select All' || tagSels[i].getAttribute('value') == 'Unselect All') {}
+  else {
+    if (tagSels[i].getAttribute('selected') == 'true') {
+      document.getElementById('tags').value += tagSels[i].getAttribute('value');
+    }
   }
 {{if .}}
   document.getElementById('the_form').submit();
