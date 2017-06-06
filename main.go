@@ -102,7 +102,6 @@ func initDb() *sql.DB {
 
 func loadImageStore(db *sql.DB, ts []string) []things.Thing {
     tx := things.GetTransactionWithTags(db, ts)
-    defer tx.Commit()
 
     rows, err := tx.Query("SELECT id, path, description, img_index, heat, name, elo FROM imgs ORDER BY elo DESC")
     if err != nil {
@@ -121,6 +120,7 @@ func loadImageStore(db *sql.DB, ts []string) []things.Thing {
         img.Tags = tags.GetTags(tx, int(img.Id))
         imageStore = append(imageStore, img)
     }
+    tx.Commit()
     return imageStore
 }
 
