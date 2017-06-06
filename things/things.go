@@ -230,13 +230,18 @@ func GetComparison(db *sql.DB, a ID, b ID) int {
 }
 
 func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
+    tx, err := db.Begin()
+    if err != nil {
+        log.Fatal("Error beginning the transaction to get tags in SelectImages: ", err)
+    }
+
     q := `
     SELECT id, path, description, img_index, heat, name, elo
     FROM images
     WHERE id = $1 OR id = $2;
     `
     fmt.Printf("selecting images %d and %d\n", int(ids.Fst), int(ids.Snd))
-    rows, err := db.Query(q, ids.Fst, ids.Snd)
+    rows, err := tx.Query(q, ids.Fst, ids.Snd)
     if err != nil {
         fmt.Print("syntax error in selectImages query: ")
         log.Fatal(err)
@@ -268,17 +273,9 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
         log.Fatal(err)
     }
 
-    tx, err := db.Begin()
-    if err != nil {
-        log.Fatal("Error beginning the transaction to get tags in SelectImages: ", err)
-    }
     img1.Tags = tags.GetTags(tx, int(img1.Id))
-    tx.Commit()
-    tx2, err := db.Begin()
-    if err != nil {
-        log.Fatal("Error beginning the transaction to get tags in SelectImages: ", err)
-    }
-    img2.Tags = tags.GetTags(tx2, int(img2.Id))
+    img2.Tags = tags.GetTags(tx, int(img2.Id))
+
     tx.Commit()
 
     return img1,img2
