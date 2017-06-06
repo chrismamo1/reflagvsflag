@@ -179,7 +179,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPai
         if err := tx.QueryRow(query, elo, ids.Fst).Scan(&ids.Snd); err != nil {
             log.Println("Error selecting: ", err)
             tx.Commit()
-            return
+            return nil
         }
     }
 
