@@ -158,15 +158,16 @@ body {
 }
 
 .pure-button-group {
+  .pure-button {
+    width: 50%;
+  }
   box-sizing: border-box;
-  display: inline-flex;
 }
 
 .pure-button-secondary {
   color: white;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
   background-color: mix-neutral($harmonious-second);
-  flex: 2;
 }
 
 /*.rfvf-tag-selector-item {
