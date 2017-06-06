@@ -4,28 +4,34 @@
 
 <div id="content">
   <form id="the_form" class="pure-form pure-form-stacked">
-    <fieldset>
-      <legend>New Flag</legend>
+    <div class="pure-u-1-24"></div>
+    <div class="pure-u-lg-2-5 pure-u-1">
+      <fieldset>
+        <legend>New Flag</legend>
 
-      <label for="flag-name">Name</label>
-      <input id="flag-name" name="flag-name" type="text" placeholder="The Duchy of Grand Fenwick">
-      <span class="pure-form-message"><i>required</i></span>
+        <label for="flag-name">Name</label>
+        <input id="flag-name" name="flag-name" type="text" placeholder="The Duchy of Grand Fenwick">
+        <span class="pure-form-message"><i>required</i></span>
 
-      <label for="flag-path">Image URL</label>
-      <input id="flag-path" name="flag-path" class="pure-u-23-24" type="text">
-      <span class="pure-form-message"><i>please make this a direct link to a CDN image, e.g. http://i.imgur.com/r4ifvdM.png rather than http://imgur.com/r4ifvdM. I'll fix links as I see them, since I don't expect an umanageable volume of flag submissions, but please make it easy for me because if I can't figure out what you meant to post then I'll have to delete your entry.</i></span>
+        <label for="flag-path">Image URL</label>
+        <input id="flag-path" name="flag-path" class="pure-u-23-24" type="text">
+        <span class="pure-form-message"><i>please make this a direct link to a CDN image, e.g. http://i.imgur.com/r4ifvdM.png rather than http://imgur.com/r4ifvdM. I'll fix links as I see them, since I don't expect an umanageable volume of flag submissions, but please make it easy for me because if I can't figure out what you meant to post then I'll have to delete your entry.</i></span>
 
-      <label for="flag-desc">Description</label>
-      <textarea id="flag-desc" name="flag-desc" placeholder="Briefly describe this flag (optional)"></textarea>
-
+        <label for="flag-desc">Description</label>
+        <textarea id="flag-desc" name="flag-desc" placeholder="Briefly describe this flag (optional)"></textarea>
+      </fieldset>
+    </div>
+    <div class="pure-u-lg-2-24"></div>
+    <div class="pure-u-lg-2-5 pure-u-1">
       <label for="tags">Tags</label>
       {{template "TagsSelection" .TagSpecs}}
-    </fieldset>
+    </div>
 
-    <fieldset>
-      <input type="hidden" name="tags" id="tags">
-      <button type="submit" class="pure-button pure-button-primary">Submit</button>
-    </fieldset>
+      <fieldset>
+        <input type="hidden" name="tags" id="tags">
+        <button type="submit" class="pure-button pure-button-primary">Submit</button>
+      </fieldset>
+    <div class="pure-u-lg-1-24"></div>
   </form>
 </div>
 
