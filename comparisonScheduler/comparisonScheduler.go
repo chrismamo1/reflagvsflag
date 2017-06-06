@@ -122,6 +122,11 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
     `
     if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat, &elo); err != nil {
         log.Println(err)
+        if err := tx.Rollback(); err != nil {
+            log.Fatal("Error while trying to rollback the aborted transaction: ", err)
+        }
+
+        tx := things.GetTransactionWithTags(this.db, tags)
         query := `
             SELECT imgs.id
             FROM imgs
