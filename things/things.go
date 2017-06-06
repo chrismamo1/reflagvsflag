@@ -268,7 +268,7 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
 
     query := fmt.Sprintf("UPDATE images SET heat = %d WHERE id = %d;", img1.Heat, img1.Id)
     query = fmt.Sprintf("%s; UPDATE images SET heat = %d WHERE id = %d;", query, img2.Heat, img2.Id)
-    _, err = db.Exec(query);
+    _, err = tx.Exec(query);
     if err != nil {
         log.Fatal(err)
     }

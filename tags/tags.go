@@ -1,6 +1,5 @@
 package tags
 
-
 import (
     "database/sql"
     _ "github.com/lib/pq"
@@ -13,8 +12,9 @@ type UserTagSpec struct {
     Selected bool
 }
 
-func GetTags(tx *sql.Tx, thing int /* should be a things.ID */) []Tag {
-    rows, err := tx.Query(`SELECT tag FROM image_tags WHERE image = $1`, thing)
+func GetTags(db *sql.DB, thing int /* should be a things.ID */) []Tag {
+    rows, err := db.Query(`SELECT tag FROM image_tags WHERE image = $1`, thing)
+    defer rows.Close()
     if err != nil {
         log.Fatal("Error selecting rows from image_tags in GetTags: ", err)
     }
@@ -29,13 +29,12 @@ func GetTags(tx *sql.Tx, thing int /* should be a things.ID */) []Tag {
         rval = append(rval, t)
     }
 
-    rows.Close()
-
     return rval
 }
 
 func GetAllTags(db *sql.DB) []UserTagSpec {
     rows, err := db.Query(`SELECT name FROM tags`)
+    defer rows.Close()
     if err != nil {
         log.Fatal("Error selecting rows from tags in GetAllTags: ", err)
     }
@@ -50,8 +49,6 @@ func GetAllTags(db *sql.DB) []UserTagSpec {
         t.Selected = false
         rval = append(rval, t)
     }
-
-    rows.Close()
 
     return rval
 }
