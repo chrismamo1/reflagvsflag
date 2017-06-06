@@ -1,23 +1,24 @@
 {{define "TagsSelectionItems"}}
   {{range .}}
-    <div class="pure-u-1 pure-u-xl-2-5 rfvf-tag-selector-item-container">
-      <span
-        class="rfvf-tag-selector-item"
-        value="{{.Tag}}"
-        onClick="this.setAttribute('selected', (this.getAttribute('selected') == 'true') ? 'false' : 'true'); updateFormValues();"
-    {{if .Selected}}
-        selected="true">
-    {{- else}}
-        selected="false">
-    {{- end}}
-        {{.Tag}}
-      </span>
-    </div>
+    <button
+      value="{{.Tag}}"
+      onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-active') } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-active')}; updateFormValues();"
+  {{if .Selected}}
+      class="pure-button pure-button-active"
+      selected="true">
+  {{- else}}
+      class="pure-button"
+      selected="false">
+  {{- end}}
+      {{.Tag}}
+    </button>
   {{end}}
 {{end}}
 
 {{define "TagsSelection"}}
-  {{template "TagsSelectionItems" .}}
+  <div role="pure-button-group">
+    {{template "TagsSelectionItems" .}}
+  </div>
 {{end}}
 
 {{define "TagIndicatorItem"}}
