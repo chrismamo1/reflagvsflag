@@ -23,14 +23,9 @@
       type="button"
       value="Select All"
       onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-secondary'); this.innerText = 'Select All' } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-secondary'); this.innerText = 'Unselect All'}; updateFormValues();"
-  {{if .Selected}}
-      class="pure-u-1 pure-button pure-button-secondary rfvf-tag-selector-item"
-      selected="true">
-  {{- else}}
       class="pure-u-1 pure-button rfvf-tag-selector-item"
       selected="false">
-  {{- end}}
-      {{.Tag}}
+      Select All
     </button>
   </div>
 {{end}}
