@@ -1,21 +1,7 @@
 {{define "content"}}
 
-<script>
-function updateFormValues() {
-  var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
+{{template "scriptUpdateFormValues" false}}
 
-  var i;
-  document.getElementById('tags').value = '';
-  for (i = 0; i < tagSels.length - 1; i++) {
-    if (tagSels[i].getAttribute('selected') == 'true') {
-      document.getElementById('tags').value += tagSels[i].getAttribute('value') + ',';
-    }
-  }
-  if (tagSels[i].getAttribute('selected') == 'true') {
-    document.getElementById('tags').value += tagSels[i].getAttribute('value');
-  }
-}
-</script>
 <div id="content">
   <form id="the_form" class="pure-form pure-form-stacked">
     <fieldset>

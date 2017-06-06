@@ -1,3 +1,26 @@
+{{define "scriptUpdateFormValues"}}
+<script>
+function updateFormValues() {
+  var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
+
+  var i;
+  document.getElementById('tags').value = '';
+  for (i = 0; i < tagSels.length - 1; i++) {
+    if (tagSels[i].getAttribute('selected') == 'true') {
+      document.getElementById('tags').value += tagSels[i].getAttribute('value') + ',';
+    }
+  }
+  if (tagSels[i].getAttribute('selected') == 'true') {
+    document.getElementById('tags').value += tagSels[i].getAttribute('value');
+  }
+{{if .}}
+  document.getElementById('the_form').submit();
+{{- else}}
+{{- end}}
+}
+</script>
+{{end}}
+
 {{define "container"}}
 
 <!doctype html>
