@@ -118,7 +118,7 @@ func loadImageStore(db *sql.DB, ts []string) []things.Thing {
         if err != nil {
             log.Fatal(err)
         }
-        img.Tags = tags.GetTags(db, int(img.Id))
+        img.Tags = tags.GetTags(tx, int(img.Id))
         imageStore = append(imageStore, img)
     }
     return imageStore

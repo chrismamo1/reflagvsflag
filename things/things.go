@@ -268,8 +268,13 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
         log.Fatal(err)
     }
 
-    img1.Tags = tags.GetTags(db, int(img1.Id))
-    img2.Tags = tags.GetTags(db, int(img2.Id))
+    tx, err := db.Begin()
+    if err != nil {
+        log.Fatal("Error beginning the transaction to get tags in SelectImages: ", err)
+    }
+    img1.Tags = tags.GetTags(tx, int(img1.Id))
+    img2.Tags = tags.GetTags(tx, int(img2.Id))
+    tx.Commit()
 
     return img1,img2
 }

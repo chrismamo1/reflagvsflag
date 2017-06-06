@@ -13,8 +13,8 @@ type UserTagSpec struct {
     Selected bool
 }
 
-func GetTags(db *sql.DB, thing int /* should be a things.ID */) []Tag {
-    rows, err := db.Query(`SELECT tag FROM image_tags WHERE image = $1`, thing)
+func GetTags(tx *sql.Tx, thing int /* should be a things.ID */) []Tag {
+    rows, err := tx.Query(`SELECT tag FROM image_tags WHERE image = $1`, thing)
     defer rows.Close()
     if err != nil {
         log.Fatal("Error selecting rows from image_tags in GetTags: ", err)
