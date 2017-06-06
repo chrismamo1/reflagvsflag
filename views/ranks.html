@@ -14,10 +14,20 @@
 
 {{define "content"}}
 <div id="content" class="pure-g">
-  <div class="pure-u-lg-2-5 pure-u-sm-1-5"></div>
+  <div class="pure-u-lg-2-5 pure-u-sm-1">
+    <form
+      class="pure-form"
+      action="/ranks"
+      method="get"
+      id="the_form"
+      onChange="document.getElementById('the_form').submit();">
+      <label for="tags">Tags</label>
+      {{template "TagsSelection" .TagSpecs}}
+    </form>
+  </div>
   <div class="pure-u-lg-1-5 pure-u-sm-2-5">
     {{template "RanksListTemplate" .AllRanks}}
   </div>
-  <div class="pure-u-lg-2-5 pure-u-sm-2-5"></div>
+  <div class="pure-u-lg-2-5 pure-u-sm-3-5"></div>
 </div>
 {{end}}

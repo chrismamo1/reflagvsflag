@@ -200,6 +200,7 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
     type CParams struct {
         AllRanks []template.HTML
+        TagSpecs []tags.UserTagSpec
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
@@ -211,6 +212,17 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
                 userTags = []string{"Modern"}
             }
         }
+
+        tagSpecs := tags.GetAllTags(db)
+        for i, t := range(tagSpecs) {
+            for _, u := range(userTags) {
+                if strings.Compare(string(t.Tag), u) == 0 {
+                    tagSpecs[i].Selected = true
+                    break
+                }
+            }
+        }
+
         users.GetByAddr(db, req.RemoteAddr)
 
         store := loadImageStore(db, userTags)
@@ -224,7 +236,9 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
         tmplParams := struct {
             ContentParams CParams
             Style string
-        } { ContentParams: CParams{ AllRanks: els },
+        } { ContentParams: CParams{
+                AllRanks: els,
+                TagSpecs: tagSpecs },
             Style: "ranks" }
         tmpl.ExecuteTemplate(writer, "container", tmplParams)
     }
