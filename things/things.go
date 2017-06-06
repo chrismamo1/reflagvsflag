@@ -71,10 +71,13 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool)
                         <center>
                             <h3>{{.Name}} (ELO: {{.Elo}})</h3>
                         </center>
-                        <img
-                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
-                            src='{{.Path}}'>
-                        </img>
+                        <figure>
+                            <img
+                                style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                                src='{{.Path}}'>
+                            </img>
+                            <figcaption>{{.Desc}}</figcaption>
+                        </figure>
                     </div>
                 `
             } else {
@@ -83,10 +86,13 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool)
                         <center>
                             <h3>{{.Name}}</h3>
                         </center>
-                        <img
-                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
-                            src='{{.Path}}'>
-                        </img>
+                        <figure>
+                            <img
+                                style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                                src='{{.Path}}'>
+                            </img>
+                            <figcaption>{{.Desc}}</figcaption>
+                        </figure>
                     </div>
                 `
             }
@@ -98,10 +104,13 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool)
                     <center>
                         <h3>{{.Name}} (ELO: {{.Elo}})</h3>
                     </center>
-                    <img
-                        style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
-                        src='{{.Path}}'>
-                    </img>
+                    <figure>
+                        <img
+                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                            src='{{.Path}}'>
+                        </img>
+                        <figcaption>{{.Desc}}</figcaption>
+                    </figure>
                 </div>
             `
         } else {
@@ -110,10 +119,13 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool)
                     <center>
                         <h3>{{.Name}}</h3>
                     </center>
-                    <img
-                        style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
-                        src='{{.Path}}'>
-                    </img>
+                    <figure>
+                        <img
+                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                            src='{{.Path}}'>
+                        </img>
+                        <figcaption>{{.Desc}}</figcaption>
+                    </figure>
                 </div>
             `
         }
@@ -130,6 +142,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool)
         Path string
         Name string
         Elo float64
+        Desc string
     }
 
     var params Parameters
@@ -138,6 +151,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool)
     params.Path = strings.Trim(thing.Path, "\n\r")
     params.Name = thing.Name
     params.Elo = thing.Elo
+    params.Desc = thing.Desc
 
     buffer := bytes.NewBufferString("")
 
@@ -236,7 +250,7 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
     }
 
     q := `
-    SELECT id, path, description, img_index, heat, name, elo
+    SELECT id, path, COALESCE(description, ''), img_index, heat, COALESCE(name, ''), elo
     FROM images
     WHERE id = $1 OR id = $2;
     `
@@ -399,6 +413,16 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
     `
     if _, err := tx.Exec(statement); err != nil {
         log.Fatal("Error populating imgs in GetTransactionWithTags: ", err)
+    }
+
+    for _, t := range(tags) {
+        var id int
+        log.Printf("Trying with tag %s\n", t)
+        query := `SELECT id FROM imgs`
+        if err := tx.QueryRow(query).Scan(&id); err != nil {
+            log.Println("Couldn't get anything out of imgs: ", err)
+        }
+        log.Printf("IMGS has a thing %d for tag %s\n", id, t)
     }
 
     return tx

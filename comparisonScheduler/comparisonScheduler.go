@@ -102,7 +102,7 @@ func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
     }
 }
 
-func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair {
+func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPair {
     tx := things.GetTransactionWithTags(this.db, tags)
 
     rand.Seed(time.Now().UnixNano())
@@ -121,12 +121,12 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         ORDER BY s_heat ASC LIMIT 1
     `
     if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat, &elo); err != nil {
-        log.Println(err)
-        if err := tx.Rollback(); err != nil {
-            log.Fatal("Error while trying to rollback the aborted transaction: ", err)
+        log.Println("Error keeping us from employing the user-based heat check: ", err)
+        if err := tx.Commit(); err != nil {
+            log.Fatal("Error while trying to commit the aborted transaction: ", err)
         }
 
-        tx := things.GetTransactionWithTags(this.db, tags)
+        tx = things.GetTransactionWithTags(this.db, tags)
         query := `
             SELECT imgs.id
             FROM imgs
@@ -136,14 +136,33 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
         rows, err := tx.Query(query)
         if err != nil {
             log.Fatal("Error selecting totally random elements in NextRequest: ", err)
+            rows.Close();
+            tx.Commit();
+            return nil
         }
-        rows.Next()
+        if rows.Next() != true {
+            log.Println("Error getting the first random element in NextRequest (rows.Next() returned false)")
+            rows.Close();
+            tx.Commit();
+            return nil
+        }
         if err := rows.Scan(&ids.Fst); err != nil {
-            log.Fatal("Error while scanning the first ID in NextRequest: ", err)
+            log.Println("Error while scanning the first ID in NextRequest: ", err)
+            rows.Close();
+            tx.Commit();
+            return nil
         }
-        rows.Next()
+        if rows.Next() != true {
+            log.Println("Error getting the first random element in NextRequest (rows.Next() returned false)")
+            rows.Close();
+            tx.Commit();
+            return nil
+        }
         if err := rows.Scan(&ids.Snd); err != nil {
-            log.Fatal("Error while scanning the second ID in NextRequest: ", err)
+            log.Println("Error while scanning the second ID in NextRequest: ", err)
+            rows.Close();
+            tx.Commit();
+            return nil
         }
         rows.Close()
     } else {
@@ -154,20 +173,22 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) things.IDPair
                  FROM imgs
                  ORDER BY ABS(elo-$1) ASC
                  LIMIT 10) tbl
+            WHERE id <> $2
             ORDER BY RANDOM() LIMIT 1;
         `
-        if err := tx.QueryRow(query, elo).Scan(&ids.Snd); err != nil {
+        if err := tx.QueryRow(query, elo, ids.Fst).Scan(&ids.Snd); err != nil {
             log.Fatal("Error selecting: ", err)
         }
     }
+
+    defer tx.Commit()
 
     statement := `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
     if _, err := tx.Exec(statement, ids.Fst, ids.Snd, user.Id); err != nil {
         log.Fatal("Error trying to add an element to the schedule: ", err)
     }
 
-    tx.Commit()
-    return ids;
+    return &ids;
 }
 
 func Make(db *sql.DB, pointlessAt int) *Scheduler {

@@ -1,7 +1,19 @@
 @import "_reflagvsflag.scss";
 
+figcaption {
+  font-size: 0.9em;
+  text-decoration: italic;
+  color: lighten($black, 7%);
+}
+
 #content {
   div {
+    div#tagbar_label {
+      font-size: 1.3em;
+      padding-left: 25px;
+      padding-top: 5px;
+    }
+
     color: $black;
 
     form {

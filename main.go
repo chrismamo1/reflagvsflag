@@ -103,7 +103,7 @@ func initDb() *sql.DB {
 func loadImageStore(db *sql.DB, ts []string) []things.Thing {
     tx := things.GetTransactionWithTags(db, ts)
 
-    rows, err := tx.Query("SELECT id, path, description, img_index, heat, name, elo FROM imgs ORDER BY elo DESC")
+    rows, err := tx.Query("SELECT id, path, COALESCE(description, ''), img_index, heat, name, elo FROM imgs ORDER BY elo DESC")
     if err != nil {
         log.Fatal(err)
     }
@@ -129,6 +129,17 @@ func loadImageStore(db *sql.DB, ts []string) []things.Thing {
 
 func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
     return func(writer http.ResponseWriter, req *http.Request) {
+        redirect := func() {
+            target := "/judge?tags=" + req.FormValue("tags")
+
+            writer.Header().Add("Location", target)
+            writer.WriteHeader(302)
+            page := `
+            <h1>Thanks for voting!</h1>
+            `
+            writer.Write([]byte(page))
+        }
+
         var ids things.IDPair
         winner, _ := strconv.Atoi(req.FormValue("winner"))
         loser, _ := strconv.Atoi(req.FormValue("loser"))
@@ -144,7 +155,9 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
         query = fmt.Sprintf(query, winner, loser, winner, loser)
         rows, err := db.Query(query)
         if err != nil {
-            log.Fatal(err)
+            log.Println("Error selecting comparisons: ", err)
+            redirect()
+            return
         }
         defer rows.Close()
 
@@ -154,7 +167,9 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
         for rows.Next() {
             err = rows.Scan(&left, &right, &balance, &heat)
             if err != nil {
-                log.Fatal(err)
+                log.Println(err)
+                redirect()
+                return
             }
             if left == winner {
                 balance = balance - 1
@@ -177,17 +192,12 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
         }
         _, err = db.Exec(query)
         if err != nil {
-            log.Fatal(err)
+            log.Println(err)
+            redirect()
+            return
         }
 
-        target := "/judge?tags=" + req.FormValue("tags")
-
-        writer.Header().Add("Location", target)
-        writer.WriteHeader(302)
-        page := `
-        <h1>Thanks for voting!</h1>
-        `
-        writer.Write([]byte(page))
+        redirect()
         scheduler.FillRequest(things.ID(winner), things.ID(loser))
     }
 }
@@ -205,12 +215,8 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
     return func(writer http.ResponseWriter, req *http.Request) {
         userTags := strings.Split(req.FormValue("tags"), ",")
-        if len(userTags) < 1 {
-            if strings.Compare(req.FormValue("tags"), "") != 0 {
-                userTags = []string{req.FormValue("tags")}
-            } else {
-                userTags = []string{"Modern"}
-            }
+        if len(userTags) < 1 || strings.Compare(req.FormValue("tags"), "") == 0 {
+            userTags = []string{"Modern"}
         }
 
         tagSpecs := tags.GetAllTags(db)
@@ -240,7 +246,10 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
                 AllRanks: els,
                 TagSpecs: tagSpecs },
             Style: "ranks" }
-        tmpl.ExecuteTemplate(writer, "container", tmplParams)
+        err := tmpl.ExecuteTemplate(writer, "container", tmplParams)
+        if err != nil {
+            log.Println("Error while executing template for ranks: ", err)
+        }
     }
 }
 
@@ -340,9 +349,24 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
     }
 
     return func(writer http.ResponseWriter, req *http.Request) {
+        redirect := func() {
+            target := "/judge?tags=" + req.FormValue("tags")
+
+            writer.Header().Add("Location", target)
+            writer.WriteHeader(302)
+            page := `
+            <h1>Thanks for voting!</h1>
+            `
+            writer.Write([]byte(page))
+        }
+
         userTags := strings.Split(req.FormValue("tags"), ",")
-        if len(userTags) < 1 {
+        if len(userTags) < 1 || strings.Compare(req.FormValue("tags"), "") == 0 {
             userTags = []string{"Modern"}
+        }
+
+        for _, u := range(userTags) {
+            log.Printf("JudgeHandler got a user tag %s\n", u)
         }
 
         tagSpecs := tags.GetAllTags(db)
@@ -356,6 +380,10 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
         }
 
         ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), userTags)
+        if ids == nil {
+            redirect()
+            return
+        }
 
         bumpExposure := func(user *users.User, img things.ID) {
             var exists bool
@@ -382,7 +410,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
         bumpExposure(user, ids.Fst)
         bumpExposure(user, ids.Snd)
 
-        left, right := things.SelectImages(db, ids)
+        left, right := things.SelectImages(db, *ids)
         tmplParams := struct {
             ContentParams CParams
             Style string
@@ -394,10 +422,89 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
                 TagSpecs: tagSpecs },
             Style: "judge" }
         if err := tmpl.ExecuteTemplate(writer, "container", tmplParams); err != nil {
-            log.Fatal("Failure executing JudgeHandler template: ", err)
+            log.Println("Failure executing JudgeHandler template: ", err)
         }
         /*page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))
         writer.Write([]byte(page))*/
+    }
+}
+
+func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
+    tmpl, err := template.ParseFiles("views/tags.html", "views/reflagvsflag.html", "views/upload.html")
+    if err != nil {
+        log.Fatal("Error parsing the templates for RanksHandler: ", err)
+    }
+
+    type CParams struct {
+        TagSpecs []tags.UserTagSpec
+    }
+
+    return func(writer http.ResponseWriter, req *http.Request) {
+        fail := func() {
+            writer.Header().Add("Location", "/upload")
+            writer.WriteHeader(302)
+            page := `<h1>Invalid upload.</h1>`
+            writer.Write([]byte(page))
+        }
+
+        isSubmission := strings.Compare(req.FormValue("tags"), "") != 0
+        isSubmission = isSubmission && (strings.Compare(req.FormValue("flag-name"), "") != 0)
+        isSubmission = isSubmission && (strings.Compare(req.FormValue("flag-path"), "") != 0)
+        if isSubmission {
+            rawTags := req.FormValue("tags")
+            userTags := strings.Split(rawTags, ",")
+            flagName := req.FormValue("flag-name")
+            flagPath := req.FormValue("flag-path")
+            flagDesc := req.FormValue("flag-desc")
+            log.Printf("Creating a flag with name \"%s\", path \"%s\", and tags %s\n", flagName, flagPath, rawTags)
+
+            statement := `
+                INSERT INTO images (path, name, img_index, heat, description)
+                VALUES ($1, $2, -1, 5, $3)
+            `
+            if _, err := db.Exec(statement, flagPath, flagName, flagDesc); err != nil {
+                log.Println("Error adding a flag: ", err)
+                fail()
+                return
+            } else {
+                var id int
+                query := `SELECT id FROM images WHERE path = $1`
+                if err := db.QueryRow(query, flagPath).Scan(&id); err != nil {
+                    log.Println("Error reading a flag after adding it: ", err)
+                    fail()
+                    return
+                }
+                for _, t := range(userTags) {
+                    statement := `
+                        INSERT INTO image_tags (image, tag)
+                        VALUES ($1, $2)`
+                    if _, err := db.Exec(statement, id, t); err != nil {
+                        log.Println("Error adding tags to a new flag: ", err)
+                        fail()
+                        return
+                    }
+                }
+                writer.Header().Add("Location", "/")
+                writer.WriteHeader(302)
+            }
+        } else {
+            tagSpecs := tags.GetAllTags(db)
+            for i, _ := range(tagSpecs) {
+                tagSpecs[i].Selected = false
+            }
+
+            users.GetByAddr(db, req.RemoteAddr)
+
+            tmplParams := struct {
+                ContentParams CParams
+                Style string
+            } { ContentParams: CParams{ TagSpecs: tagSpecs },
+                Style: "upload" }
+            err := tmpl.ExecuteTemplate(writer, "container", tmplParams)
+            if err != nil {
+                log.Println("Error while executing template for upload: ", err)
+            }
+        }
     }
 }
 
@@ -480,6 +587,7 @@ func main() {
     r.HandleFunc("/ranks", RanksHandler(db))
     r.HandleFunc("/users", UsersHandler(db))
     r.HandleFunc("/stats", StatsHandler(db))
+    r.HandleFunc("/upload", UploadHandler(db))
     r.HandleFunc("/judge", JudgeHandler(db, scheduler))
     r.HandleFunc("/vote", VoteHandler(db, scheduler))
     r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))

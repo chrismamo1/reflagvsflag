@@ -13,16 +13,33 @@
 {{end}}
 
 {{define "content"}}
+<script>
+function updateFormValues() {
+  var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
+
+  var i;
+  document.getElementById('tags').value = '';
+  for (i = 0; i < tagSels.length - 1; i++) {
+    if (tagSels[i].getAttribute('selected') == 'true') {
+      document.getElementById('tags').value += tagSels[i].getAttribute('value') + ',';
+    }
+  }
+  if (tagSels[i].getAttribute('selected') == 'true') {
+    document.getElementById('tags').value += tagSels[i].getAttribute('value');
+  }
+
+  document.getElementById('the_form').submit();
+}
+</script>
 <div id="content" class="pure-g">
-  <div class="pure-u-lg-2-5 pure-u-sm-1">
+  <div class="pure-u-lg-2-5">
     <form
       class="pure-form"
       action="/ranks"
       method="get"
-      id="the_form"
-      onChange="document.getElementById('the_form').submit();">
-      <label for="tags">Tags</label>
+      id="the_form">
       {{template "TagsSelection" .TagSpecs}}
+      <input type="hidden" name="tags" id="tags" />
     </form>
   </div>
   <div class="pure-u-lg-1-5 pure-u-sm-2-5">
@@ -30,4 +47,16 @@
   </div>
   <div class="pure-u-lg-2-5 pure-u-sm-3-5"></div>
 </div>
+<script>
+$('select').multipleSelect({
+  onCheckAll: function() {
+    document.getElementById('the_form').submit();
+  },
+  onUncheckAll: function() {
+    document.getElementById('the_form').submit();
+  },
+  onClick: function() {
+    document.getElementById('the_form').submit
+  }});
+</script>
 {{end}}

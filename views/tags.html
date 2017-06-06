@@ -1,26 +1,23 @@
 {{define "TagsSelectionItems"}}
   {{range .}}
+    <div class="pure-u-1 pure-u-xl-2-5 rfvf-tag-selector-item-container">
+      <span
+        class="rfvf-tag-selector-item"
+        value="{{.Tag}}"
+        onClick="this.setAttribute('selected', (this.getAttribute('selected') == 'true') ? 'false' : 'true'); updateFormValues();"
     {{if .Selected}}
-      <option value="{{.Tag}}" selected>{{.Tag}}</option>
+        selected="true">
     {{- else}}
-      <option value="{{.Tag}}">{{.Tag}}</option>
+        selected="false">
     {{- end}}
+        {{.Tag}}
+      </span>
+    </div>
   {{end}}
 {{end}}
 
 {{define "TagsSelection"}}
-<script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
-<script
-  src="/static/js/multiple-select.js"></script>
-<select id="tags" name="tags" multiple="multiple">
   {{template "TagsSelectionItems" .}}
-</select>
-<script>
-  $('select').multipleSelect();
-</script>
 {{end}}
 
 {{define "TagIndicatorItem"}}

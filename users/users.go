@@ -188,7 +188,7 @@ func (this *User) SubmitVote(db *sql.DB, winner things.ID, loser things.ID) {
     query := `INSERT INTO votes ("user", winner, loser) VALUES ($1, $2, $3)`
     _, err := db.Exec(query, this.Id, winner, loser)
     if err != nil {
-        log.Fatal(err)
+        log.Println("Problem submitting a vote: ", err)
     }
 
     /// TODO: move bumpExposure into this function

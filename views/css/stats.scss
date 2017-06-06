@@ -1,5 +1,11 @@
 @import "_reflagvsflag.scss";
 
 #content {
-  font-size: 5em;
+  div {
+    margin: 5px;
+    padding: 5px;
+  }
+  margin: 5px;
+  padding: 5px;
+  font-size: 2em;
 }
