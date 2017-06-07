@@ -1,5 +1,66 @@
 {{define "scriptUpdateFormValues"}}
 <script>
+function allAreSelected() {
+  var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
+
+  var i;
+  for (i = 0; i < tagSels.length; i++) {
+    if (tagSels[i].getAttribute('value') == 'Select All' || tagSels[i].getAttribute('value') == 'Unselect All') {
+      continue;
+    }
+    var isSelected = tagSels[i].getAttribute('selected');
+    if (isSelected != 'true') {
+      return false;
+    }
+  }
+  return true;
+}
+
+function updateAllToggle() {
+  var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
+  allToggle = tagSels[tagSels.length - 1];
+  if (allAreSelected()) {
+    allToggle.setAttribute('value', 'Unselect All');
+    allToggle.innerText = 'Unselect All';
+    allToggle.setAttribute('selected', 'true');
+    allToggle.classList.add('pure-button-secondary');
+  } else {
+    allToggle.setAttribute('value', 'Select All');
+    allToggle.innerText = 'Select All';
+    allToggle.setAttribute('selected', 'false');
+    allToggle.classList.remove('pure-button-secondary');
+  }
+}
+
+function setAllTagSelectorValues(toWhat) {
+  var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
+
+  var i;
+  for (i = 0; i < tagSels.length; i++) {
+    if (tagSels[i].getAttribute('value') == 'Select All' || tagSels[i].getAttribute('value') == 'Unselect All') {
+      continue;
+    }
+    var isSelected = tagSels[i].getAttribute('selected');
+    if (isSelected == 'true') {
+      if (toWhat == 'true') {
+        continue;
+      } else {
+        tagSels[i].setAttribute('selected', 'false');
+        tagSels[i].classList.remove('pure-button-secondary');
+      }
+    } else {
+      if (toWhat == 'false') {
+        continue;
+      } else {
+        tagSels[i].setAttribute('selected', 'true');
+        tagSels[i].classList.add('pure-button-secondary');
+      }
+    }
+  }
+
+  updateAllToggle();
+}
+
 function toggleTagSelectorValues() {
   var tagSels = document.getElementsByClassName('rfvf-tag-selector-item');
 
@@ -17,6 +78,8 @@ function toggleTagSelectorValues() {
       tagSels[i].classList.add('pure-button-secondary');
     }
   }
+
+  updateAllToggle();
 }
 
 function updateFormValues() {
@@ -38,6 +101,8 @@ function updateFormValues() {
       document.getElementById('tags').value += tagSels[i].getAttribute('value');
     }
   }
+
+  updateAllToggle();
 {{if .}}
   document.getElementById('the_form').submit();
 {{- else}}
