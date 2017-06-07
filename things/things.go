@@ -406,7 +406,7 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
         INSERT INTO imgs (id, path, name, description, img_index, heat, elo)
         SELECT i.id, i.path, i.name, i.description, i.img_index, i.heat, i.elo
         FROM (
-            SELECT *
+            SELECT DISTINCT *
             FROM images
             LEFT OUTER JOIN image_tags ON images.id = image_tags.image
             WHERE tag IN (SELECT tag FROM given_tags)) i
