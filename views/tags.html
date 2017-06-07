@@ -17,7 +17,7 @@
 {{end}}
 
 {{define "TagsSelection"}}
-  <div class="pure-button-group" role="group" aria-label="Selected Tags">
+  <div onLoad="updateAllToggle();" class="pure-button-group" role="group" aria-label="Selected Tags">
     {{template "TagsSelectionItems" .}}
     <button
       type="button"
