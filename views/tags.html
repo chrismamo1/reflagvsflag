@@ -22,7 +22,7 @@
     <button
       type="button"
       value="Select All"
-      onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-secondary'); this.innerText = 'Select All'; setAllTagSelectorValues('false') } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-secondary'); this.innerText = 'Unselect All'; setAllTagSelectorValues('true')}; toggleTagSelectorValues(); updateFormValues();"
+      onClick="if (this.getAttribute('selected') == 'true') { setAllTagSelectorValues('false') } else { setAllTagSelectorValues('true') }; updateAllToggle(); updateFormValues();"
       class="pure-u-1 pure-button rfvf-tag-selector-item"
       selected="false"
       style="width: 100%">
