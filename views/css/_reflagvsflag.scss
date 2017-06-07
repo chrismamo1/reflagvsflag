@@ -168,8 +168,14 @@ body {
   border: 1px solid rgba(0,0,0,0.2);
 }
 
+.pure-button-primary {
+  color: $white;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  background-color: mix-neutral($harmonious-first);
+}
+
 .pure-button-secondary {
-  color: white;
+  color: $white;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
   background-color: mix-neutral($harmonious-second);
 }
