@@ -3,7 +3,7 @@
     <button
       type="button"
       value="{{.Tag}}"
-      onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-secondary') } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-secondary')}; toggleTagSelectorValues(); updateFormValues();"
+      onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-secondary') } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-secondary')}; updateFormValues();"
   {{if .Selected}}
       class="pure-u-1 pure-button pure-button-secondary rfvf-tag-selector-item"
       selected="true">
@@ -22,7 +22,7 @@
     <button
       type="button"
       value="Select All"
-      onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-secondary'); this.innerText = 'Select All' } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-secondary'); this.innerText = 'Unselect All'}; updateFormValues();"
+      onClick="if (this.getAttribute('selected') == 'true') { this.setAttribute('selected', 'false'); this.classList.remove('pure-button-secondary'); this.innerText = 'Select All' } else { this.setAttribute('selected', 'true'); this.classList.add('pure-button-secondary'); this.innerText = 'Unselect All'}; toggleTagSelectorValues(); updateFormValues();"
       class="pure-u-1 pure-button rfvf-tag-selector-item"
       selected="false"
       style="width: 100%">
