@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y ruby
 RUN gem install sass
 RUN sass -v
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN sudo apt-get install -y nodejs
+RUN apt-get install -y nodejs
 CMD cd / && \
         rm -rf /go/src/github.com/chrismamo1/reflagvsflag/* && \
         rm -rf /go/src/github.com/chrismamo1/reflagvsflag/.git/* && \
