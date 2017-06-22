@@ -17,7 +17,7 @@
 {{end}}
 
 {{define "TagsSelection"}}
-  <div onLoad="updateAllToggle();" class="pure-button-group" role="group" aria-label="Selected Tags">
+  <div onLoad="updateAllToggle();" class="pure-button-group" role="group" aria-label="Selected Tags" id="rfvfTagSelector">
     {{template "TagsSelectionItems" .}}
     <button
       type="button"
