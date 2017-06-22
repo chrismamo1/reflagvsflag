@@ -116,7 +116,7 @@ func loadImageStore(db *sql.DB, ts []string) []things.Thing {
 
 func addAllTagsCookie(db *sql.DB, w *http.ResponseWriter) {
 	tags := tags.GetAllTags(db)
-	http.SetCookie(*w, Cookie{Name: "all_tags", Value: strings.Join(tags, ",")})
+	http.SetCookie(*w, http.Cookie{Name: "all_tags", Value: strings.Join(tags, ",")})
 }
 
 func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
@@ -464,7 +464,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 			userTags = []string{"Modern"}
 		}
 
-		isSubmission := isSubmission && (strings.Compare(req.FormValue("flag-name"), "") != 0)
+		isSubmission = strings.Compare(req.FormValue("flag-name"), "") != 0
 		isSubmission = isSubmission && (strings.Compare(req.FormValue("flag-path"), "") != 0)
 		if isSubmission {
 			rawTags := selectedTagsCookie
@@ -508,7 +508,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 			tmplParams := struct {
 				ContentParams CParams
 				Style         string
-			}{ContentParams: CParams{TagSpecs: tagSpecs},
+			}{ContentParams: CParams{TagSpecs: tags.makeSpecs(db, []tags.TagSpec{})},
 				Style: "upload"}
 			err := tmpl.ExecuteTemplate(writer, "container", tmplParams)
 			if err != nil {

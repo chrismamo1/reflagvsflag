@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "github.com/lib/pq"
 	"log"
+	"strings"
 )
 
 type Tag string
@@ -54,4 +55,16 @@ func GetAllTags(db *sql.DB) []UserTagSpec {
 	rows.Close()
 
 	return rval
+}
+
+func makeSpecs(db *sql.DB, selected []Tag) []TagSpec {
+	allTags := GetAllTags(db)
+	for i, tag := range allTags {
+		for _, sTag := range selected {
+			if strings.Compare(string(tag.Tag), string(sTag)) == 0 {
+				allTags[i].Selected = true
+			}
+		}
+	}
+	return allTags
 }
