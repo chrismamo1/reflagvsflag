@@ -57,7 +57,7 @@ func GetAllTags(db *sql.DB) []UserTagSpec {
 	return rval
 }
 
-func makeSpecs(db *sql.DB, selected []Tag) []TagSpec {
+func MakeSpecs(db *sql.DB, selected []Tag) []UserTagSpec {
 	allTags := GetAllTags(db)
 	for i, tag := range allTags {
 		for _, sTag := range selected {

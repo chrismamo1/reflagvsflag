@@ -116,7 +116,12 @@ func loadImageStore(db *sql.DB, ts []string) []things.Thing {
 
 func addAllTagsCookie(db *sql.DB, w *http.ResponseWriter) {
 	tags := tags.GetAllTags(db)
-	http.SetCookie(*w, http.Cookie{Name: "all_tags", Value: strings.Join(tags, ",")})
+	sTags := make([]string, len(tags))
+	for i, tag := range tags {
+		sTags[i] = string(tag.Tag)
+	}
+	cookie := http.Cookie{Name: "all_tags", Value: strings.Join(sTags, ",")}
+	http.SetCookie(*w, &cookie)
 }
 
 func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
@@ -212,8 +217,12 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		var selectedTagsCookie string
 
+		tagsCookie, _ := req.Cookie("selected_tags")
+		selectedTagsCookie = tagsCookie.Value
 		if tagsCookie, err := req.Cookie("selected_tags"); err != nil {
 			selectedTagsCookie = "Modern"
+		} else {
+			selectedTagsCookie = tagsCookie.Value
 		}
 
 		userTags := strings.Split(selectedTagsCookie, ",")
@@ -221,7 +230,13 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 			userTags = []string{"Modern"}
 		}
 
-		tagSpecs := userTags
+		selTags := make([]tags.Tag, len(userTags))
+
+		for i, tag := range userTags {
+			selTags[i] = tags.Tag(tag)
+		}
+
+		tagSpecs := tags.MakeSpecs(db, selTags)
 
 		users.GetByAddr(db, req.RemoteAddr)
 
@@ -360,8 +375,12 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 
 		var selectedTagsCookie string
 
+		tagsCookie, _ := req.Cookie("selected_tags")
+		selectedTagsCookie = tagsCookie.Value
 		if tagsCookie, err := req.Cookie("selected_tags"); err != nil {
 			selectedTagsCookie = "Modern"
+		} else {
+			selectedTagsCookie = tagsCookie.Value
 		}
 
 		userTags := strings.Split(selectedTagsCookie, ",")
@@ -455,8 +474,12 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		var selectedTagsCookie string
 
+		tagsCookie, _ := req.Cookie("selected_tags")
+		selectedTagsCookie = tagsCookie.Value
 		if tagsCookie, err := req.Cookie("selected_tags"); err != nil {
 			selectedTagsCookie = "Modern"
+		} else {
+			selectedTagsCookie = tagsCookie.Value
 		}
 
 		userTags := strings.Split(selectedTagsCookie, ",")
@@ -464,7 +487,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 			userTags = []string{"Modern"}
 		}
 
-		isSubmission = strings.Compare(req.FormValue("flag-name"), "") != 0
+		isSubmission := strings.Compare(req.FormValue("flag-name"), "") != 0
 		isSubmission = isSubmission && (strings.Compare(req.FormValue("flag-path"), "") != 0)
 		if isSubmission {
 			rawTags := selectedTagsCookie
@@ -508,7 +531,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 			tmplParams := struct {
 				ContentParams CParams
 				Style         string
-			}{ContentParams: CParams{TagSpecs: tags.makeSpecs(db, []tags.TagSpec{})},
+			}{ContentParams: CParams{TagSpecs: tags.MakeSpecs(db, []tags.Tag{})},
 				Style: "upload"}
 			err := tmpl.ExecuteTemplate(writer, "container", tmplParams)
 			if err != nil {
