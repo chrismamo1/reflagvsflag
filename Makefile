@@ -11,7 +11,9 @@ static/css/stats.css: views/css/stats.scss views/css/_reflagvsflag.scss
 	sass views/css/stats.scss $@
 
 views/react/dist/reflagvsflag.js:
-	cd views/react && npm install --only=dev && npm run bsb && npm run dist
+	cd views/react && npm install --only=dev
+	cd views/react && npm run bsb
+	cd views/react && npm run dist
 
 static/js/reflagvsflag.js: views/react/dist/reflagvsflag.js
 	cp views/react/dist/reflagvsflag.js static/js/reflagvsflag.js
