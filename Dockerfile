@@ -1,4 +1,4 @@
-FROM reflagvsflag:reflagvsflag-base
+FROM chrismamo1/reflagvsflag:reflagvsflag-base
 EXPOSE 80
 RUN go get github.com/chrismamo1/reflagvsflag
 RUN ls
