@@ -2,6 +2,8 @@ FROM golang:1.8
 RUN apt-get update
 RUN apt-get install -y software-properties-common python-software-properties
 RUN apt-get install -y m4 opam
+RUN opam --help
+RUN opam init -y
 RUN eval `opam config env --shell=sh`
 RUN opam update
 RUN opam switch 4.03.0
