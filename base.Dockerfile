@@ -1,6 +1,6 @@
 FROM golang:1.8
 RUN apt-get update
-RUN apt-get install software-properties-common python-software-properties
+RUN apt-get install -y software-properties-common python-software-properties
 RUN add-apt-repository --yes ppa:avsm/ppa
 RUN apt-get update -qq
 RUN apt-get install -y m4 opam
