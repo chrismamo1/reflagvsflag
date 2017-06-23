@@ -1,14 +1,15 @@
 FROM golang:1.8
 RUN apt-get update
 RUN apt-get install -y software-properties-common python-software-properties
-RUN add-apt-repository --yes ppa:avsm/ppa
-RUN apt-get update -qq
 RUN apt-get install -y m4 opam
-RUN bash -c "eval $(opam config env)"
-RUN bash -c "opam switch 4.03.0"
+RUN eval `opam config env --shell=sh`
+RUN opam update
+RUN opam switch 4.03.0
+RUN opam install reason
+RUN opam upgrade
 RUN go get github.com/gorilla/mux
 RUN go get github.com/lib/pq
-RUN apt-get update && apt-get install -y ruby
+RUN apt-get install -y ruby
 RUN gem install sass
 RUN sass -v
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
