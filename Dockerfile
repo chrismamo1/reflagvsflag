@@ -9,7 +9,10 @@ RUN sass -v
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
 RUN npm install -g bs-platform
-CMD cd / && \
+RUN ls
+RUN pwd
+CMD pwd && ls && \
+        cd / && \
         rm -rf /go/src/github.com/chrismamo1/reflagvsflag/* && \
         rm -rf /go/src/github.com/chrismamo1/reflagvsflag/.git/* && \
         rmdir /go/src/github.com/chrismamo1/reflagvsflag/.git && \
