@@ -5,6 +5,13 @@ RUN pwd
 RUN go get github.com/chrismamo1/reflagvsflag
 RUN ls
 RUN pwd
+WORKDIR /go/src/github.com/chrismamo1
+RUN ls
+RUN pwd
+ADD . /reflagvsflag
+RUN ls
+RUN pwd
+WORKDIR /go/src/github.com/chrismamo1/reflagvsflag
 CMD pwd && ls && \
         cd / && \
         rm -rf /go/src/github.com/chrismamo1/reflagvsflag/* && \
