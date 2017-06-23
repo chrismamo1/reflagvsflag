@@ -1,5 +1,7 @@
 FROM chrismamo1/reflagvsflag:reflagvsflag-base
 EXPOSE 80
+RUN ls
+RUN pwd
 RUN go get github.com/chrismamo1/reflagvsflag
 RUN ls
 RUN pwd
