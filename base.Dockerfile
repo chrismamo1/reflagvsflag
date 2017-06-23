@@ -1,8 +1,8 @@
 FROM golang:1.8
+ENV OPAMYES true
 RUN apt-get update
 RUN apt-get install -y software-properties-common python-software-properties m4 opam git ruby
 RUN opam --help
-RUN export OPAMYES=true
 RUN echo $OPAMYES
 RUN opam init
 RUN eval `opam config env --shell=sh`
