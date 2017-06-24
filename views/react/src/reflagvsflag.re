@@ -52,7 +52,7 @@ let tags: list Tags.tag = {
   let sels =
     if (List.length sels == 0) {
       let tags = ["Modern"];
-      Cookies.updateSelectedTags tags;
+      Cookies.updateSelectedTags (List.map Tags.of_string tags);
       tags
     } else {
       sels
