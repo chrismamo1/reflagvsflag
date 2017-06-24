@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo 'Error: no test specified' && exit 1",
     "dist": "webpack",
-    "bsb": "bsb"
+    "bsb": "bsb",
+    "bsb-clean": "bsb -clean",
+    "bsb-world": "bsb -make-world"
   },
   "keywords": [],
   "author": "",

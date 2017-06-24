@@ -13,6 +13,8 @@ RUN npm --version
 RUN npm update
 RUN npm upgrade
 RUN npm install --only=dev
+RUN npm run bsb-clean
+RUN npm run bsb-world
 RUN npm run bsb
 RUN npm run dist
 
