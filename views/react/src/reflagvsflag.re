@@ -53,5 +53,9 @@ let tags: list Tags.tag = {
     (fun (tag: string) => ({name: tag, selected: List.exists ((==) tag) sels}: Tags.tag)) all
 };
 
+let rfvfTagSelectorContainer = getById dom "rfvfTagSelector";
+
+Js.log rfvfTagSelectorContainer;
+
 ReactDOMRe.render
-  <TagSelector updateSelected=Cookies.updateSelectedTags tags /> (getById dom "rfvfTagSelector");
+  <TagSelector updateSelected=Cookies.updateSelectedTags tags /> rfvfTagSelectorContainer;
