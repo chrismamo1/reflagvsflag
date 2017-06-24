@@ -29,7 +29,10 @@ let make ::updateSelected ::tags _children => {
   };
   {
     ...component,
-    initialState: fun () => tags,
+    initialState: fun () => {
+      Js.log tags;
+      tags
+    },
     render: fun state self => {
       let allSel = {
         let text =

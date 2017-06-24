@@ -49,9 +49,19 @@ external getById : dom => string => Dom.element = "getElementById" [@@bs.send];
 let tags: list Tags.tag = {
   let all = Cookies.getAllTags ();
   let sels = Cookies.getSelectedTags ();
+  let sels =
+    if (List.length sels == 0) {
+      let tags = ["Modern"];
+      Cookies.updateSelectedTags tags;
+      tags
+    } else {
+      sels
+    };
   List.map
     (fun (tag: string) => ({name: tag, selected: List.exists ((==) tag) sels}: Tags.tag)) all
 };
+
+Js.log tags;
 
 let rfvfTagSelectorContainer = getById dom "rfvfTagSelector";
 
