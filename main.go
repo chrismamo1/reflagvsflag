@@ -216,9 +216,8 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		addAllTagsCookie(db, &writer)
 
 		var selectedTagsCookie string
+		var tagsCookie *http.Cookie
 
-		tagsCookie, _ := req.Cookie("selected_tags")
-		selectedTagsCookie = tagsCookie.Value
 		if tagsCookie, err := req.Cookie("selected_tags"); err != nil {
 			selectedTagsCookie = "Modern"
 		} else {
@@ -374,9 +373,8 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		}
 
 		var selectedTagsCookie string
+		var tagsCookie *http.Cookie
 
-		tagsCookie, _ := req.Cookie("selected_tags")
-		selectedTagsCookie = tagsCookie.Value
 		if tagsCookie, err := req.Cookie("selected_tags"); err != nil {
 			selectedTagsCookie = "Modern"
 		} else {
@@ -473,9 +471,8 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		}
 
 		var selectedTagsCookie string
+		var tagsCookie *http.Cookie
 
-		tagsCookie, _ := req.Cookie("selected_tags")
-		selectedTagsCookie = tagsCookie.Value
 		if tagsCookie, err := req.Cookie("selected_tags"); err != nil {
 			selectedTagsCookie = "Modern"
 		} else {
