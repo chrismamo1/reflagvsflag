@@ -6,6 +6,17 @@ ADD . /reflagvsflag
 WORKDIR /go/src/github.com/chrismamo1/reflagvsflag
 RUN ls && pwd
 RUN make styles
-RUN eval `opam config env` && make static/js/reflagvsflag.js
+
+WORKDIR /go/src/github.com/chrismamo1/reflagvsflag/views/react
+RUN node --version
+RUN npm --version
+RUN npm update
+RUN npm upgrade
+RUN npm install --only=dev
+RUN npm run bsb
+RUN npm run dist
+
+WORKDIR /go/src/github.com/chrismamo1/reflagvsflag
+RUN make static/js/reflagvsflag.js
 CMD ls && pwd && \
         go run ./main.go
