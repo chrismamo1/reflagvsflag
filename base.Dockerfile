@@ -10,7 +10,7 @@ RUN opam init && \
       eval `opam config env` && \
       opam update && \
       opam upgrade && \
-      opam install reason \
+      opam install reason
 RUN go get github.com/gorilla/mux && \
       go get github.com/lib/pq
 RUN gem install sass && \
