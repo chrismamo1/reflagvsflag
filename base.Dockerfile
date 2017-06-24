@@ -8,7 +8,6 @@ RUN opam init && \
       eval `opam config env` && \
       opam switch 4.03.0 && \
       eval `opam config env` && \
-      opam switch remove 4.01.0 && \
       opam update && \
       opam upgrade && \
       opam install reason
