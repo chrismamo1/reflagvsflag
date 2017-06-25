@@ -10,8 +10,6 @@ RUN make styles
 WORKDIR /go/src/github.com/chrismamo1/reflagvsflag/views/react
 RUN node --version
 RUN npm --version
-RUN npm update
-RUN npm upgrade
 RUN npm install --only=dev
 RUN npm run bsb-clean
 RUN npm run bsb-world
