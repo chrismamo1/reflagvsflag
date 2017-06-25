@@ -53,13 +53,14 @@ let tags: list Tags.tag = {
   Js.log2 "Cookies.getAllTags() from Reflagvsflag.tags = " all;
   let sels = {
     let sels = Cookies.getSelectedTags ();
-    if (List.length sels == 0) {
+    Js.log2 "Cookies.getSelectedTags() from Reflagvsflag.tags.sels = " sels;
+    switch sels {
+    | [] =>
       let sels = ["Modern"];
       Js.log "No tags given, defaulting to [Modern]";
       Cookies.updateSelectedTags (List.map Tags.of_string sels);
       StringSet.of_list sels
-    } else {
-      StringSet.of_list sels
+    | sels => StringSet.of_list sels
     }
   };
   Js.log2 "sels from Reflagvsflag.tags = " sels;

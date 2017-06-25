@@ -124,12 +124,35 @@ func addAllTagsCookie(db *sql.DB, w *http.ResponseWriter) {
 	http.SetCookie(*w, &cookie)
 }
 
+func addSelectedTagsCookie(selectedTags []string, w *http.ResponseWriter) {
+	cookie := http.Cookie{
+		Name:  "selected_tags",
+		Value: strings.Join(selectedTags, ",")}
+	http.SetCookie(*w, &cookie)
+}
+
 func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, req *http.Request) {
 		addAllTagsCookie(db, &writer)
 
+		var selectedTagsCookie string
+		var tagsCookie *http.Cookie
+
+		if tagsCookie, err = req.Cookie("selected_tags"); err != nil {
+			selectedTagsCookie = "Modern"
+		} else {
+			selectedTagsCookie = tagsCookie.Value
+		}
+
+		userTags := strings.Split(selectedTagsCookie, ",")
+		if len(userTags) < 1 {
+			userTags = []string{"Modern"}
+		}
+
+		addSelectedTagsCookie(userTags, &writer)
+
 		redirect := func() {
-			target := "/judge?tags=" + req.FormValue("tags")
+			target := "/judge"
 
 			writer.Header().Add("Location", target)
 			writer.WriteHeader(302)
@@ -229,6 +252,8 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 			userTags = []string{"Modern"}
 		}
 
+		addSelectedTagsCookie(userTags, &writer)
+
 		selTags := make([]tags.Tag, len(userTags))
 
 		for i, tag := range userTags {
@@ -277,6 +302,22 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 	return func(writer http.ResponseWriter, req *http.Request) {
 		addAllTagsCookie(db, &writer)
+
+		var selectedTagsCookie string
+		var tagsCookie *http.Cookie
+
+		if tagsCookie, err = req.Cookie("selected_tags"); err != nil {
+			selectedTagsCookie = "Modern"
+		} else {
+			selectedTagsCookie = tagsCookie.Value
+		}
+
+		userTags := strings.Split(selectedTagsCookie, ",")
+		if len(userTags) < 1 {
+			userTags = []string{"Modern"}
+		}
+
+		addSelectedTagsCookie(userTags, &writer)
 
 		var content CParams
 		users.GetByAddr(db, req.RemoteAddr)
@@ -386,6 +427,8 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 			userTags = []string{"Modern"}
 		}
 
+		addSelectedTagsCookie(userTags, &writer)
+
 		for _, u := range userTags {
 			log.Printf("JudgeHandler got a user tag %s\n", u)
 		}
@@ -483,6 +526,8 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		if len(userTags) < 1 {
 			userTags = []string{"Modern"}
 		}
+
+		addSelectedTagsCookie(userTags, &writer)
 
 		isSubmission := strings.Compare(req.FormValue("flag-name"), "") != 0
 		isSubmission = isSubmission && (strings.Compare(req.FormValue("flag-path"), "") != 0)
