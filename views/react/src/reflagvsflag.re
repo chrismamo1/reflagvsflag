@@ -48,15 +48,18 @@ external getById : dom => string => Dom.element = "getElementById" [@@bs.send];
 
 let tags: list Tags.tag = {
   let all = Cookies.getAllTags ();
+  Js.log2 "Cookies.getAllTags() == " all;
   let sels = Cookies.getSelectedTags ();
   let sels =
     if (List.length sels == 0) {
       let tags = ["Modern"];
+      Js.log "No tags given, defaulting to [Modern]";
       Cookies.updateSelectedTags (List.map Tags.of_string tags);
       tags
     } else {
       sels
     };
+  Js.log2 "sels from Reflagvsflag.tags = " sels;
   List.map
     (fun (tag: string) => ({name: tag, selected: List.exists ((==) tag) sels}: Tags.tag)) all
 };
