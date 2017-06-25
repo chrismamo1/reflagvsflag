@@ -31,14 +31,14 @@ module Cookies = {
   let getSelectedTags () => {
     let cookie = getCookie "selected_tags";
     switch cookie {
-    | Some cookie => Array.to_list (Js.String.split cookie ",")
+    | Some cookie => Array.to_list (Js.String.split "," cookie)
     | None => []
     }
   };
   let getAllTags () => {
     let cookie = getCookie "all_tags";
     switch cookie {
-    | Some cookie => Array.to_list (Js.String.split cookie ",")
+    | Some cookie => Array.to_list (Js.String.split "," cookie)
     | None => []
     }
   };
@@ -46,20 +46,29 @@ module Cookies = {
 
 external getById : dom => string => Dom.element = "getElementById" [@@bs.send];
 
+module StringSet = Set.Make String;
+
 let tags: list Tags.tag = {
-  let all = Cookies.getAllTags ();
-  Js.log2 "Cookies.getAllTags() == " all;
-  let sels = Cookies.getSelectedTags ();
-  let sels =
+  let all = StringSet.of_list (Cookies.getAllTags ());
+  Js.log2 "Cookies.getAllTags() from Reflagvsflag.tags = " all;
+  let sels = {
+    let sels = Cookies.getSelectedTags ();
     if (List.length sels == 0) {
-      let tags = ["Modern"];
+      let sels = ["Modern"];
       Js.log "No tags given, defaulting to [Modern]";
-      Cookies.updateSelectedTags (List.map Tags.of_string tags);
-      tags
+      Cookies.updateSelectedTags (List.map Tags.of_string sels);
+      StringSet.of_list sels
     } else {
-      sels
-    };
+      StringSet.of_list sels
+    }
+  };
   Js.log2 "sels from Reflagvsflag.tags = " sels;
+  let all = StringSet.union all sels;
+  Js.log2 "all from Reflagvsflag.tags after union with sels = " all;
+  let all = StringSet.elements all;
+  let sels = StringSet.elements sels;
+  Js.log2 "all from Reflagvsflag.tags after recovering elements from set = " all;
+  Js.log2 "sels from Reflagvsflag.tags after recovering elements from set = " sels;
   List.map
     (fun (tag: string) => ({name: tag, selected: List.exists ((==) tag) sels}: Tags.tag)) all
 };
