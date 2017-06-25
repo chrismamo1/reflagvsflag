@@ -138,7 +138,8 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 		var selectedTagsCookie string
 		var tagsCookie *http.Cookie
 
-		if tagsCookie, err = req.Cookie("selected_tags"); err != nil {
+		tagsCookie, err := req.Cookie("selected_tags")
+		if err != nil {
 			selectedTagsCookie = "Modern"
 		} else {
 			selectedTagsCookie = tagsCookie.Value
