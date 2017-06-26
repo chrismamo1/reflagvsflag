@@ -5,8 +5,11 @@ WORKDIR /go/src/github.com/chrismamo1
 ADD . /reflagvsflag
 
 WORKDIR /go/src/github.com/chrismamo1/reflagvsflag/views/react
-RUN node --version && \
+RUN eval `opam config env` && \
+        node --version && \
         npm --version && \
+        npm update && \
+        npm upgrade --all && \
         npm install --only=dev && \
         npm run bsb-clean && \
         npm run bsb-world && \
