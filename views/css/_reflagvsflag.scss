@@ -112,15 +112,15 @@ body {
 }
 
 #menu {
-  //overflow: hidden;
+  overflow: hidden;
   background-color: $black;
   color: $white;
-  //width: 220px;
-  //left: 220px;
-  //margin-left: -220px;
-  //position: fixed;
-  //top: 0;
-  //bottom: 0;
+  width: 220px;
+  left: 220px;
+  margin-left: -220px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
   font-size: 1.175em;
 
   .pure-menu-heading {
@@ -137,8 +137,9 @@ body {
 #content {
   background-color: $white;
   color: $black;
-  //left: 220px;
   padding: 10px;
+  display: inline;
+  position:relative;
 }
 
 .rfvf-tag-selector-item-container {
