@@ -10,7 +10,7 @@ module Cookies = {
     /* this algorithm based on an answer by StackOverflow user "kirlich" to the question:
        https://stackoverflow.com/questions/10730362/get-cookie-by-name */
     let all = "; " ^ get_all_cookies dom ^ ";";
-    let regex = Js.Re.fromString ("; " ^ name ^ "=(.*);");
+    let regex = Js.Re.fromString ("; " ^ name ^ "=([^;]*);");
     let result = Js.Re.exec all regex;
     switch result {
     | None => None
