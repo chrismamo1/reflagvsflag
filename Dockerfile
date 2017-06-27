@@ -9,7 +9,8 @@ RUN eval `opam config env` && \
         node --version && \
         npm --version && \
         npm update && \
-        npm upgrade --all && \
+        npm upgrade --all
+RUN eval `opam config env` && \
         npm install --save-dev bs-platform && \
         npm install --only=dev && \
         npm run bsb-clean && \
