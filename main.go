@@ -426,7 +426,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		}
 
 		userTags := strings.Split(selectedTagsCookie, ",")
-		if len(userTags) < 1 {
+		if len(userTags) < 1 || (len(userTags) == 1 && len(userTags[0]) < 4) {
 			userTags = []string{"Modern"}
 		}
 
