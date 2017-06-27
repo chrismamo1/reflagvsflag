@@ -406,6 +406,8 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		redirect := func() {
 			target := "/judge"
 
+			addSelectedTagsCookie([]string{"Modern"}, &writer)
+
 			writer.Header().Add("Location", target)
 			writer.WriteHeader(302)
 			page := `
