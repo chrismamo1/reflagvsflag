@@ -1,117 +1,121 @@
 package comparisonScheduler
 
 import (
-    "database/sql"
-    "errors"
-    "log"
-    "math"
-    "math/rand"
-    "time"
-    _ "github.com/lib/pq"
-    "github.com/chrismamo1/reflagvsflag/things"
-    "github.com/chrismamo1/reflagvsflag/users")
+	"database/sql"
+	"errors"
+	"github.com/chrismamo1/reflagvsflag/things"
+	"github.com/chrismamo1/reflagvsflag/users"
+	_ "github.com/lib/pq"
+	"log"
+	"math"
+	"math/rand"
+	"time"
+)
 
 type Priority int
 
 const (
-    PMarginal Priority = iota
-    PLow
-    PMedium
-    PHigh
+	PMarginal Priority = iota
+	PLow
+	PMedium
+	PHigh
 )
 
 type Scheduler struct {
-    db *sql.DB
-    pointlessThreshold int
+	db                 *sql.DB
+	pointlessThreshold int
 }
 
 func (this *Scheduler) hasAnyRequests() bool {
-    var status bool
-    query := `SELECT EXISTS(SELECT * FROM schedule LIMIT 1)`
-    if err := this.db.QueryRow(query).Scan(&status); err != nil {
-        log.Fatal("Error while trying to see if the scheduler table has anything in it: ", err)
-    }
-    return status
+	var status bool
+	query := `SELECT EXISTS(SELECT * FROM schedule LIMIT 1)`
+	if err := this.db.QueryRow(query).Scan(&status); err != nil {
+		log.Fatal("Error while trying to see if the scheduler table has anything in it: ", err)
+	}
+	return status
 }
 
 func (this *Scheduler) getMinPlacement() int {
-    placement := 1
-    if this.hasAnyRequests() {
-        query := `select MIN(placement) FROM scheduler`
-        if err := this.db.QueryRow(query).Scan(&placement); err != nil {
-            log.Fatal("Error while getting the max placement from the scheduler while appending a request: ", err)
-        }
-    }
-    return placement
+	placement := 1
+	if this.hasAnyRequests() {
+		query := `select MIN(placement) FROM scheduler`
+		if err := this.db.QueryRow(query).Scan(&placement); err != nil {
+			log.Fatal("Error while getting the max placement from the scheduler while appending a request: ", err)
+		}
+	}
+	return placement
 }
 
 func (this *Scheduler) hasRequest(ids things.IDPair) bool {
-    var status bool
-    query := `SELECT EXISTS(SELECT * FROM schedule WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1) LIMIT 1)`
-    if err := this.db.QueryRow(query, ids.Fst, ids.Snd).Scan(&status); err != nil {
-        log.Fatal("Error while trying to determine if the scheduler contains a request: ", err)
-    }
-    return status
+	var status bool
+	query := `SELECT EXISTS(SELECT * FROM schedule WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1) LIMIT 1)`
+	if err := this.db.QueryRow(query, ids.Fst, ids.Snd).Scan(&status); err != nil {
+		log.Fatal("Error while trying to determine if the scheduler contains a request: ", err)
+	}
+	return status
 }
 
 func (this *Scheduler) rmRequest(ids things.IDPair) {
-    statement := `DELETE FROM schedule WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1)`
-    if _, err := this.db.Exec(statement, ids.Fst, ids.Snd); err != nil {
-        log.Fatal("Error while trying to delete a scheduler request: ", err)
-    }
+	statement := `DELETE FROM schedule WHERE (fst = $1 AND snd = $2) OR (fst = $2 AND snd = $1)`
+	if _, err := this.db.Exec(statement, ids.Fst, ids.Snd); err != nil {
+		log.Fatal("Error while trying to delete a scheduler request: ", err)
+	}
 }
 
 func (this *Scheduler) HasRequest(ids things.IDPair) bool {
-    return this.hasRequest(ids)
+	return this.hasRequest(ids)
 }
 
 func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
-    ids := things.IDPair{Fst: winner, Snd: loser}
-    log.Printf("Filling a request for %d, %d\n", int(winner), int(loser))
-    if this.hasRequest(ids) {
-        var elo1, elo2 float64
-        query := `SELECT elo FROM images WHERE id = $1;`
-        if err := this.db.QueryRow(query, winner).Scan(&elo1); err != nil {
-            log.Fatal("Error getting 1st elo in FillRequest: ", err)
-        }
-        if err := this.db.QueryRow(query, loser).Scan(&elo2); err != nil {
-            log.Fatal("Error getting 2nd elo in FillRequest: ", err)
-        }
-        r1 := math.Pow(10.0, elo1 / 400)
-        r2 := math.Pow(10.0, elo2 / 400)
-        e1 := r1 / (r1 + r2)
-        e2 := r2 / (r1 + r2)
-        s1 := 1.0
-        s2 := 0.0
-        elo1 = elo1 + 10.0 * (s1 - e1)
-        elo2 = elo2 + 10.0 * (s2 - e2)
-        log.Printf("New ELO for image %d: %f\n", int(winner), elo1)
-        log.Printf("New ELO for image %d: %f\n", int(loser), elo2)
-        statement := "UPDATE images SET elo = $1 WHERE id = $2"
-        if _, err := this.db.Exec(statement, elo1, winner); err != nil {
-            log.Fatal("Error while trying to update an ELO value: ", err)
-        }
-        statement = "UPDATE images SET elo = $1 WHERE id = $2"
-        if _, err := this.db.Exec(statement, elo2, loser); err != nil {
-            log.Fatal("Error while trying to update an ELO value: ", err)
-        }
-        this.rmRequest(ids)
-        if this.hasRequest(ids) {
-            log.Fatal(errors.New("rmRequest doesn't work"))
-        }
-    }
+	ids := things.IDPair{Fst: winner, Snd: loser}
+	log.Printf("Filling a request for %d, %d\n", int(winner), int(loser))
+	if this.hasRequest(ids) {
+		var elo1, elo2 float64
+		query := `SELECT elo FROM images WHERE id = $1;`
+		if err := this.db.QueryRow(query, winner).Scan(&elo1); err != nil {
+			log.Fatal("Error getting 1st elo in FillRequest: ", err)
+		}
+		if err := this.db.QueryRow(query, loser).Scan(&elo2); err != nil {
+			log.Fatal("Error getting 2nd elo in FillRequest: ", err)
+		}
+		r1 := math.Pow(10.0, elo1/400)
+		r2 := math.Pow(10.0, elo2/400)
+		e1 := r1 / (r1 + r2)
+		e2 := r2 / (r1 + r2)
+		s1 := 1.0
+		s2 := 0.0
+		elo1 = elo1 + 10.0*(s1-e1)
+		elo2 = elo2 + 10.0*(s2-e2)
+		log.Printf("New ELO for image %d: %f\n", int(winner), elo1)
+		log.Printf("New ELO for image %d: %f\n", int(loser), elo2)
+		statement := "UPDATE images SET elo = $1 WHERE id = $2"
+		if _, err := this.db.Exec(statement, elo1, winner); err != nil {
+			log.Fatal("Error while trying to update an ELO value: ", err)
+		}
+		statement = "UPDATE images SET elo = $1 WHERE id = $2"
+		if _, err := this.db.Exec(statement, elo2, loser); err != nil {
+			log.Fatal("Error while trying to update an ELO value: ", err)
+		}
+		this.rmRequest(ids)
+		if this.hasRequest(ids) {
+			log.Fatal(errors.New("rmRequest doesn't work"))
+		}
+	}
 }
 
 func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPair {
-    tx := things.GetTransactionWithTags(this.db, tags)
+	if len(tags) < 1 {
+		tags = []string{"Modern"}
+	}
+	tx := things.GetTransactionWithTags(this.db, tags)
 
-    rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UnixNano())
 
-    var ids things.IDPair
-    var s_heat int
-    var elo float64
+	var ids things.IDPair
+	var s_heat int
+	var elo float64
 
-    query := `
+	query := `
         SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat, elo
         FROM
             views,
@@ -120,53 +124,53 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPai
         GROUP BY (id, s_heat, elo)
         ORDER BY s_heat ASC LIMIT 1
     `
-    if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat, &elo); err != nil {
-        log.Println("Error keeping us from employing the user-based heat check: ", err)
-        if err := tx.Commit(); err != nil {
-            log.Fatal("Error while trying to commit the aborted transaction: ", err)
-        }
+	if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat, &elo); err != nil {
+		log.Println("Error keeping us from employing the user-based heat check: ", err)
+		if err := tx.Commit(); err != nil {
+			log.Fatal("Error while trying to commit the aborted transaction: ", err)
+		}
 
-        tx = things.GetTransactionWithTags(this.db, tags)
-        query := `
+		tx = things.GetTransactionWithTags(this.db, tags)
+		query := `
             SELECT imgs.id
             FROM imgs
             ORDER BY imgs.heat ASC, RANDOM()
             LIMIT 2
         `
-        rows, err := tx.Query(query)
-        if err != nil {
-            log.Fatal("Error selecting totally random elements in NextRequest: ", err)
-            rows.Close();
-            tx.Commit();
-            return nil
-        }
-        if rows.Next() != true {
-            log.Println("Error getting the first random element in NextRequest (rows.Next() returned false)")
-            rows.Close();
-            tx.Commit();
-            return nil
-        }
-        if err := rows.Scan(&ids.Fst); err != nil {
-            log.Println("Error while scanning the first ID in NextRequest: ", err)
-            rows.Close();
-            tx.Commit();
-            return nil
-        }
-        if rows.Next() != true {
-            log.Println("Error getting the first random element in NextRequest (rows.Next() returned false)")
-            rows.Close();
-            tx.Commit();
-            return nil
-        }
-        if err := rows.Scan(&ids.Snd); err != nil {
-            log.Println("Error while scanning the second ID in NextRequest: ", err)
-            rows.Close();
-            tx.Commit();
-            return nil
-        }
-        rows.Close()
-    } else {
-        query := `
+		rows, err := tx.Query(query)
+		if err != nil {
+			log.Fatal("Error selecting totally random elements in NextRequest: ", err)
+			rows.Close()
+			tx.Commit()
+			return nil
+		}
+		if rows.Next() != true {
+			log.Println("Error getting the first random element in NextRequest (rows.Next() returned false)")
+			rows.Close()
+			tx.Commit()
+			return nil
+		}
+		if err := rows.Scan(&ids.Fst); err != nil {
+			log.Println("Error while scanning the first ID in NextRequest: ", err)
+			rows.Close()
+			tx.Commit()
+			return nil
+		}
+		if rows.Next() != true {
+			log.Println("Error getting the first random element in NextRequest (rows.Next() returned false)")
+			rows.Close()
+			tx.Commit()
+			return nil
+		}
+		if err := rows.Scan(&ids.Snd); err != nil {
+			log.Println("Error while scanning the second ID in NextRequest: ", err)
+			rows.Close()
+			tx.Commit()
+			return nil
+		}
+		rows.Close()
+	} else {
+		query := `
             SELECT id
             FROM
                 (SELECT *
@@ -176,25 +180,25 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPai
             WHERE id <> $2
             ORDER BY RANDOM() LIMIT 1;
         `
-        if err := tx.QueryRow(query, elo, ids.Fst).Scan(&ids.Snd); err != nil {
-            log.Println("Error selecting: ", err)
-            tx.Commit()
-            return nil
-        }
-    }
+		if err := tx.QueryRow(query, elo, ids.Fst).Scan(&ids.Snd); err != nil {
+			log.Println("Error selecting: ", err)
+			tx.Commit()
+			return nil
+		}
+	}
 
-    defer tx.Commit()
+	defer tx.Commit()
 
-    statement := `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
-    if _, err := tx.Exec(statement, ids.Fst, ids.Snd, user.Id); err != nil {
-        log.Fatal("Error trying to add an element to the schedule: ", err)
-    }
+	statement := `INSERT INTO schedule (fst, snd, "user") VALUES ($1, $2, $3)`
+	if _, err := tx.Exec(statement, ids.Fst, ids.Snd, user.Id); err != nil {
+		log.Fatal("Error trying to add an element to the schedule: ", err)
+	}
 
-    return &ids;
+	return &ids
 }
 
 func Make(db *sql.DB, pointlessAt int) *Scheduler {
-    return &Scheduler{db: db, pointlessThreshold: pointlessAt}
+	return &Scheduler{db: db, pointlessThreshold: pointlessAt}
 }
 
 /*func (this *Scheduler) addSatisfaction(ids things.IDPair) {
