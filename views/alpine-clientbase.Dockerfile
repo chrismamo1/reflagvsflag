@@ -1,6 +1,7 @@
 FROM alpine:3.5
 ENV OPAMYES=true
 RUN mkdir -p /home/reflagvsflag
+RUN apk add --update build-base
 RUN apk \
         add \
         aws-cli \
