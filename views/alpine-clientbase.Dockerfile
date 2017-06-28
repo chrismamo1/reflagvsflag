@@ -2,7 +2,7 @@ FROM alpine:3.5
 ENV OPAMYES=true
 RUN mkdir -p /home/views/react
 COPY ./react/package.json /home/views/react/package.json
-RUN apk add --update build-base m4
+RUN apk add --update build-base m4 bash
 RUN apk \
         add \
           aws-cli \
