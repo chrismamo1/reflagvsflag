@@ -9,7 +9,7 @@ RUN apk \
         --repository http://dl-3.alpinelinux.org/alpine/edge/testing/
 COPY . /home/views
 WORKDIR /home/views/react
-RUN apk add m4 make opam nodejs && \
+RUN apk add gcc m4 make opam nodejs && \
         rm -rf /var/cache/apk/* && \
         opam init && \
         eval `opam config env` && \
