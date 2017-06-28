@@ -7,7 +7,7 @@ RUN apk \
         add \
           aws-cli \
           --allow-untrusted \
-          --update
+          --update \
           --update-cache \
           --repository http://dl-3.alpinelinux.org/alpine/edge/testing/
 RUN apk add --update make opam nodejs patch
