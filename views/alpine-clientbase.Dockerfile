@@ -8,8 +8,6 @@ RUN apk \
         --allow-untrusted \
         --update-cache \
         --repository http://dl-3.alpinelinux.org/alpine/edge/testing/
-COPY . /home/views
-WORKDIR /home/views/react
 RUN apk add gcc m4 make opam nodejs && \
         rm -rf /var/cache/apk/* && \
         opam init && \
