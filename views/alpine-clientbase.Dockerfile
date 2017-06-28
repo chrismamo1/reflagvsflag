@@ -1,7 +1,5 @@
 FROM alpine:3.5
 ENV OPAMYES=true
-RUN mkdir -p /home/views/react
-COPY ./react/package.json /home/views/react/package.json
 RUN apk add --update build-base m4 bash
 RUN apk \
         add \
@@ -27,5 +25,8 @@ RUN eval `opam config env` && \
 RUN apk add curl wget ruby ruby-bundler ruby-dev ruby-rdoc
 RUN rm -rf /var/cache/apk/*
 RUN gem install sass
+
+RUN mkdir -p /home/views/react
+COPY ./react/package.json /home/views/react/package.json
 WORKDIR /home/views/react
 RUN npm install --only=dev
