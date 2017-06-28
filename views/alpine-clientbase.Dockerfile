@@ -26,7 +26,6 @@ RUN eval `opam config env` && \
 
 RUN apk add curl wget ruby ruby-bundler ruby-dev ruby-rdoc
 RUN rm -rf /var/cache/apk/*
-RUN gem install sass && \
-        echo Sass version: `sass -v`
+RUN gem install sass
 WORKDIR /home/views/react
 RUN npm install --only=dev
