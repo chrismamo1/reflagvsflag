@@ -8,12 +8,14 @@ RUN apk \
         --allow-untrusted \
         --update-cache \
         --repository http://dl-3.alpinelinux.org/alpine/edge/testing/
-RUN apk add gcc m4 make opam nodejs && \
+RUN apk add gcc m4 make opam nodejs patch && \
         rm -rf /var/cache/apk/* && \
         opam init && \
         eval `opam config env` && \
+        opam install camlp4 && \
         opam switch 4.03.0 && \
         eval `opam config env` && \
+        opam install camlp4 && \
         opam update && \
         opam upgrade && \
         opam install reason && \
