@@ -24,7 +24,7 @@ RUN eval `opam config env` && \
 RUN eval `opam config env` && \
         opam install reason
 
-RUN apk add curl wget ruby ruby-bundler
+RUN apk add curl wget ruby ruby-bundler ruby-dev ruby-rdoc
 RUN rm -rf /var/cache/apk/*
 RUN gem install sass && \
         echo Sass version: `sass -v`
