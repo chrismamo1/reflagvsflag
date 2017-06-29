@@ -33,4 +33,5 @@ RUN npm install --save-dev bs-platform
 RUN npm install --only=dev
 
 RUN apk add groff less python py-pip && \
+        pip uninstall awscli && \
         pip install awscli
