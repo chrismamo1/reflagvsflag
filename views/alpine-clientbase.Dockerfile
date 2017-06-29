@@ -29,4 +29,5 @@ RUN gem install sass
 RUN mkdir -p /home/views/react
 COPY ./react/package.json /home/views/react/package.json
 WORKDIR /home/views/react
+RUN npm install --save-dev bs-platform
 RUN npm install --only=dev
