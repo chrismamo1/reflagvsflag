@@ -23,15 +23,16 @@ RUN eval `opam config env` && \
         opam install reason
 
 RUN apk add curl wget ruby ruby-bundler ruby-dev ruby-rdoc ruby-irb
-RUN rm -rf /var/cache/apk/*
-RUN gem install sass
 
-RUN mkdir -p /home/views/react
+RUN gem install sass && \
+        mkdir -p /home/views/react
+
 COPY ./react/package.json /home/views/react/package.json
 WORKDIR /home/views/react
-RUN npm install --save-dev bs-platform
-RUN npm install --only=dev
+RUN npm install --save-dev bs-platform && \
+        npm install --only=dev
 
 RUN apk add groff less python py-pip && \
+        rm -rf /var/cache/apk/* && \
         pip uninstall awscli && \
         pip install awscli
