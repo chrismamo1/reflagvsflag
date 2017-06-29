@@ -31,3 +31,6 @@ COPY ./react/package.json /home/views/react/package.json
 WORKDIR /home/views/react
 RUN npm install --save-dev bs-platform
 RUN npm install --only=dev
+
+RUN apk add groff less python py-pip && \
+        pip install awscli
