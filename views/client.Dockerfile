@@ -9,4 +9,4 @@ RUN eval `opam config env` && \
         aws cp dist/ s3://reflagvsflag-static-files/scripts/ --exclude "*" --include "*.js"
 WORKDIR /home/views/css
 RUN sass --update scss:css && \
-        aws cp . s3://reflagvsflag-static-files/styles/ --exclude "*" --include "*.css"
+        aws s3 cp . s3://reflagvsflag-static-files/styles/ --exclude "*" --include "*.css"
