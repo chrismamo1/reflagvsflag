@@ -7,24 +7,21 @@ RUN apk \
           --allow-untrusted \
           --update \
           --update-cache \
-          --repository http://dl-3.alpinelinux.org/alpine/edge/testing/
-RUN apk add --update make opam nodejs patch
-RUN opam init && \
+          --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ && \
+        apk add --update make opam nodejs patch && \
+        opam init && \
+        eval `opam config env` && \
+        opam install camlp4 && \
+        eval `opam config env` && \
+        opam switch 4.03.0 && \
         eval `opam config env` && \
         opam install camlp4
 RUN eval `opam config env` && \
-        opam switch 4.03.0
-RUN eval `opam config env` && \
-        opam install camlp4
-RUN eval `opam config env` && \
         opam update && \
-        opam upgrade
-RUN eval `opam config env` && \
         opam install reason
 
-RUN apk add curl wget ruby ruby-bundler ruby-dev ruby-rdoc ruby-irb
-
-RUN gem install sass && \
+RUN apk add curl wget ruby ruby-bundler ruby-dev ruby-rdoc ruby-irb && \
+        gem install sass && \
         mkdir -p /home/views/react
 
 COPY ./react/package.json /home/views/react/package.json
