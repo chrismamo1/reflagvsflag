@@ -1,7 +1,9 @@
 FROM chrismamo1/reflagvsflag:alpine-clientbase
 COPY . /home/views
 WORKDIR /home/views/react
-RUN eval `opam config env` && \
+RUN echo AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID && \
+        echo AWS_SECRET_ACCESS_KEY $AWS_SECRET_ACCESS_KEY && \
+        eval `opam config env` && \
         npm run bsb-clean && \
         npm run bsb-world && \
         npm run bsb && \
