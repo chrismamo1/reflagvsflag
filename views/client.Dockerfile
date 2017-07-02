@@ -1,4 +1,6 @@
 FROM chrismamo1/reflagvsflag:alpine-clientbase
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
 COPY . /home/views
 WORKDIR /home/views/react
 RUN echo AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID && \
