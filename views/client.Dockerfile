@@ -3,8 +3,8 @@ ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 COPY . /home/views
 WORKDIR /home/views/react
-RUN echo AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID && \
-        echo AWS_SECRET_ACCESS_KEY $AWS_SECRET_ACCESS_KEY && \
+RUN echo AWS_ACCESS_KEY_ID ${AWS_ACCESS_KEY_ID} && \
+        echo AWS_SECRET_ACCESS_KEY ${AWS_SECRET_ACCESS_KEY} && \
         eval `opam config env` && \
         npm run bsb-clean && \
         npm run bsb-world && \
