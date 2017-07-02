@@ -1,5 +1,4 @@
 FROM alpine:3.5
-ENV OPAMYES=true
 RUN apk add --update build-base m4 bash
 RUN apk \
         add \
