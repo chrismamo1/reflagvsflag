@@ -31,3 +31,4 @@ RUN npm install --save-dev bs-platform && \
 RUN apk add groff less python py-pip && \
         rm -rf /var/cache/apk/* && \
         pip install awscli
+RUN printenv
