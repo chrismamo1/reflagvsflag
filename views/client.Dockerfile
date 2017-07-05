@@ -13,4 +13,5 @@ RUN printenv && \
 WORKDIR /home/views/css
 RUN pwd
 RUN sass *.scss
+RUN ls
 RUN for file in ./*.css; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done
