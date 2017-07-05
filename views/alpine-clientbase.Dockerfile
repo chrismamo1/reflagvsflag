@@ -1,4 +1,4 @@
-FROM alpine:3.5
+FROM chrismamo1/reflagvsflag:alpine-3.5-with-credentials
 RUN apk add --update build-base m4 bash
 RUN apk \
         add \
@@ -31,4 +31,3 @@ RUN npm install --save-dev bs-platform && \
 RUN apk add groff less python py-pip && \
         rm -rf /var/cache/apk/* && \
         pip install awscli
-RUN printenv && echo OPAMYES ${OPAMYES}
