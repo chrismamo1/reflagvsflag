@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 {{define "scriptUpdateFormValues"}}
 <script>
 function allAreSelected() {

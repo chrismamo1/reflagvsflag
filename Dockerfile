@@ -1,7 +1,7 @@
 FROM golang:1.8
 EXPOSE 80
 WORKDIR /go/src/github.com/chrismamo1
-ADD . /reflagvsflag
+ADD . /go/src/github.com/chrismamo1/reflagvsflag
 
 RUN go get github.com/gorilla/mux && \
         go get github.com/lib/pq
