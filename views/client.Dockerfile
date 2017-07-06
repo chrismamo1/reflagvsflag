@@ -9,6 +9,7 @@ RUN printenv && \
         npm run bsb-world && \
         npm run bsb && \
         npm run dist && \
+        aws s3 rm s3://reflagvsflag-static-files/scripts/ --recursive && \
         aws s3 cp ./dist/reflagvsflag.js s3://reflagvsflag-static-files/scripts/reflagvsflag.js
 WORKDIR /home/views/css
 RUN pwd
@@ -18,6 +19,7 @@ RUN sass judge.scss judge.css && \
         sass upload.scss upload.css && \
         sass _reflagvsflag.scss reflagvsflag.css
 RUN ls
-RUN for file in ./*.scss; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done
-RUN for file in ./*.css; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done
-RUN for file in ./*.css.map; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done
+RUN aws s3 rm s3://reflagvsflag-static-files/styles/ --recursive && \
+        for file in ./*.scss; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done && \
+        for file in ./*.css; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done && \
+        for file in ./*.css.map; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done
