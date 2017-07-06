@@ -3,7 +3,7 @@
 {{template "scriptUpdateFormValues" false}}
 
 <div id="content" class="pure-u-1 pure-u-lg-20-24">
-  <div class="pure-u-lg-5-24 pure-u-sm-1">
+  <div class="pure-u-lg-10-24 pure-u-sm-1">
     <div class="pure-u-1" id="tagbar_label">
       Judging Tags
     </div>
@@ -14,17 +14,17 @@
       <input type="hidden" name="loser" id="loser">
     </form>
   </div>
-  <div class="pure-u-lg-7-24 pure-u-sm-1">
+  <div class="pure-u-lg-6-24 pure-u-sm-1">
     <a onClick="submitVote({{.FirstId}}, {{.SecondId}});">
       {{.First}}
     </a>
   </div>
-  <div class="pure-u-lg-4-24 pure-u-sm-1 hide-on-mobile" style="text-align: center; font-size: 1.675em">
+  <div class="pure-u-lg-2-24 pure-u-sm-1 hide-on-mobile" style="text-align: center; font-size: 1.675em">
     <div style="padding-top: 50%">
       - OR -
     </div>
   </div>
-  <div class="pure-u-lg-7-24 pure-u-sm-1">
+  <div class="pure-u-lg-6-24 pure-u-sm-1">
     <a onClick="submitVote({{.SecondId}}, {{.FirstId}});">
       {{.Second}}
     </a>
