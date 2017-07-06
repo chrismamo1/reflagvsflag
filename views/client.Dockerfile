@@ -18,5 +18,6 @@ RUN sass judge.scss judge.css && \
         sass upload.scss upload.css && \
         sass _reflagvsflag.scss reflagvsflag.css
 RUN ls
+RUN for file in ./*.scss; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done
 RUN for file in ./*.css; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done
 RUN for file in ./*.css.map; do aws s3 cp $file s3://reflagvsflag-static-files/styles/; done
