@@ -226,7 +226,7 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 }
 
 func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
-	tmpl, err := template.ParseFiles("views/tags.html", "views/reflagvsflag.html", "views/ranks.html")
+	tmpl, err := template.ParseFiles("views/tags.gotemplate", "views/reflagvsflag.gotemplate", "views/ranks.gotemplate")
 	if err != nil {
 		log.Fatal("Error parsing the templates for RanksHandler: ", err)
 	}
@@ -288,7 +288,7 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 }
 
 func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
-	tmpl, err := template.ParseFiles("views/reflagvsflag.html", "views/stats.html")
+	tmpl, err := template.ParseFiles("views/reflagvsflag.gotemplate", "views/stats.gotemplate")
 	if err != nil {
 		log.Fatal("Error parsing the templates for StatsHandler: ", err)
 	}
@@ -387,7 +387,7 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 }
 
 func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
-	tmpl, err := template.ParseFiles("views/tags.html", "views/reflagvsflag.html", "views/judge.html")
+	tmpl, err := template.ParseFiles("views/tags.gotemplate", "views/reflagvsflag.gotemplate", "views/judge.gotemplate")
 	if err != nil {
 		log.Fatal("Error parsing the templates for JudgeHandler: ", err)
 	}
@@ -497,7 +497,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 }
 
 func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
-	tmpl, err := template.ParseFiles("views/tags.html", "views/reflagvsflag.html", "views/upload.html")
+	tmpl, err := template.ParseFiles("views/tags.gotemplate", "views/reflagvsflag.gotemplate", "views/upload.gotemplate")
 	if err != nil {
 		log.Fatal("Error parsing the templates for RanksHandler: ", err)
 	}

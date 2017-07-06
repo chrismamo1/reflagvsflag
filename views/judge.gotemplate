@@ -19,7 +19,7 @@
       {{.First}}
     </a>
   </div>
-  <div class="pure-u-lg-4-24 pure-u-sm-1" style="text-align: center; font-size: 1.675em">
+  <div class="pure-u-lg-4-24 pure-u-sm-1 hide-on-mobile" style="text-align: center; font-size: 1.675em">
     <div style="padding-top: 50%">
       - OR -
     </div>

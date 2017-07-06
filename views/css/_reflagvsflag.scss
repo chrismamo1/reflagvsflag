@@ -78,30 +78,6 @@ $harmonious-second: harmonious-mix($first-color, $second-color);
         }
 }
 
-/*@function pick-contrast($color) {
-        @if is-high-key-value($color){
-                @if lightness($color) < 30% {
-                        @return lighten(complement($color), 86);
-                }
-                @else if lightness($color) > 70% {
-                        @return darken(complement($color), 68);
-                }
-                @else {
-                        @return darken(complement($color), 53);
-                }
-        } @else {
-                @if lightness($color) < 30% {
-                        @return lighten(complement($color), 86);
-                }
-                @else if lightness($color) > 70% {
-                        @return darken(complement($color), 68);
-                }
-                @else {
-                        @return lighten(complement($color), 53);
-                }
-        }
-}*/
-
 $black: hsl(120, 100%, 5%);
 $white: hsl(300, 100%, 99%);
 
@@ -171,20 +147,16 @@ body {
   border: 1px solid rgba(0,0,0,0.2);
 }
 
-.pure-menu {
-  display: inline-block;
-}
-
 @media only screen and (max-device-width: 1200px) {
-  .pure-menu {
+  #menu {
     * {
       display: inline;
       padding-left: 5px;
     }
-  }
-
-  #menu {
     height: auto;
+  }
+  .hide-on-mobile {
+    display: none;
   }
 }
 
