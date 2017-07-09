@@ -28,52 +28,6 @@ func initDb() *sql.DB {
 	}
 
 	statement := `
-    CREATE TABLE IF NOT EXISTS images (
-        id SERIAL PRIMARY KEY,
-        path TEXT NOT NULL UNIQUE,
-        name TEXT,
-        description TEXT,
-        img_index INT NOT NULL,
-        heat INT NOT NULL,
-        elo REAL NOT NULL DEFAULT(1000.0));
-    CREATE TABLE IF NOT EXISTS comparisons (
-        "left" INT NOT NULL,
-        "right" INT NOT NULL,
-        balance INT NOT NULL,
-        heat INT NOT NULL,
-        FOREIGN KEY ("left") REFERENCES images(id),
-        FOREIGN KEY ("right") REFERENCES images(id));
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        ip_addr TEXT NOT NULL UNIQUE);
-    CREATE TABLE IF NOT EXISTS exposure (
-        "user" INT NOT NULL,
-        image INT NOT NULL,
-        heat INT NOT NULL,
-        FOREIGN KEY ("user") REFERENCES users(id),
-        FOREIGN KEY (image) REFERENCES images(id));
-    CREATE TABLE IF NOT EXISTS votes (
-        id SERIAL PRIMARY KEY,
-        "user" INT NOT NULL,
-        winner INT NOT NULL,
-        loser INT NOT NULL,
-        submitted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
-        FOREIGN KEY ("user") REFERENCES users(id),
-        FOREIGN KEY (winner) REFERENCES images(id),
-        FOREIGN KEY (loser) REFERENCES images(id),
-        CHECK (NOT(winner = loser)));
-    CREATE TABLE IF NOT EXISTS scheduler (
-        id SERIAL PRIMARY KEY,
-        fst INT NOT NULL,
-        snd INT NOT NULL,
-        placement INT NOT NULL,
-        priority INT NOT NULL,
-        FOREIGN KEY (fst) REFERENCES images(id),
-        FOREIGN KEY (snd) REFERENCES images(id),
-        CHECK (fst <> snd));
-    CREATE TABLE IF NOT EXISTS tags (
-        name TEXT NOT NULL);
-    INSERT INTO sort_iterations (count) VALUES (0) ON CONFLICT DO NOTHING;
     TRUNCATE scheduler;
     UPDATE exposure SET heat = 0;
     `
