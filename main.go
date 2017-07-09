@@ -85,7 +85,7 @@ func addSelectedTagsCookie(selectedTags []string, w *http.ResponseWriter) {
 	http.SetCookie(*w, &cookie)
 }
 
-func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
+func WrapHandler(db *sql.DB, h func(http.ResponseWriter, *http.Request, []string, []string)) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, req *http.Request) {
 		addAllTagsCookie(db, &writer)
 
@@ -106,6 +106,18 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 
 		addSelectedTagsCookie(userTags, &writer)
 
+		allTags := tags.GetAllTags(db)
+		sAllTags := make([]string, len(allTags))
+		for i, tag := range allTags {
+			sAllTags[i] = string(tag.Tag)
+		}
+
+		h(writer, req, sAllTags, userTags)
+	}
+}
+
+func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request, []string, []string) {
+	return func(writer http.ResponseWriter, req *http.Request, allTags []string, tags []string) {
 		redirect := func() {
 			target := "/judge"
 
@@ -179,7 +191,7 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 	}
 }
 
-func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
+func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string, []string) {
 	tmpl, err := template.ParseFiles("views/tags.gotemplate", "views/reflagvsflag.gotemplate", "views/ranks.gotemplate")
 	if err != nil {
 		log.Fatal("Error parsing the templates for RanksHandler: ", err)
@@ -190,28 +202,9 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		TagSpecs []tags.UserTagSpec
 	}
 
-	return func(writer http.ResponseWriter, req *http.Request) {
-		addAllTagsCookie(db, &writer)
-
-		var selectedTagsCookie string
-		var tagsCookie *http.Cookie
-
-		if tagsCookie, err = req.Cookie("selected_tags"); err != nil {
-			selectedTagsCookie = "Modern"
-		} else {
-			selectedTagsCookie = tagsCookie.Value
-		}
-
-		userTags := strings.Split(selectedTagsCookie, ",")
-		if len(userTags) < 1 {
-			userTags = []string{"Modern"}
-		}
-
-		addSelectedTagsCookie(userTags, &writer)
-
-		selTags := make([]tags.Tag, len(userTags))
-
-		for i, tag := range userTags {
+	return func(writer http.ResponseWriter, req *http.Request, allTags []string, uTags []string) {
+		selTags := make([]tags.Tag, len(uTags))
+		for i, tag := range uTags {
 			selTags[i] = tags.Tag(tag)
 		}
 
@@ -219,7 +212,7 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		users.GetByAddr(db, req.RemoteAddr)
 
-		store := loadImageStore(db, userTags)
+		store := loadImageStore(db, uTags)
 
 		els := []template.HTML{}
 
@@ -241,7 +234,7 @@ func RanksHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
+func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string, []string) {
 	tmpl, err := template.ParseFiles("views/reflagvsflag.gotemplate", "views/stats.gotemplate")
 	if err != nil {
 		log.Fatal("Error parsing the templates for StatsHandler: ", err)
@@ -255,7 +248,7 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		TotalFlags int
 	}
 
-	return func(writer http.ResponseWriter, req *http.Request) {
+	return func(writer http.ResponseWriter, req *http.Request, allTags []string, uTags []string) {
 		addAllTagsCookie(db, &writer)
 
 		var selectedTagsCookie string
@@ -311,8 +304,8 @@ func StatsHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
-	return func(writer http.ResponseWriter, req *http.Request) {
+func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string, []string) {
+	return func(writer http.ResponseWriter, req *http.Request, allTags []string, uTags []string) {
 		users.GetByAddr(db, req.RemoteAddr)
 
 		page := `
@@ -340,7 +333,7 @@ func UsersHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request) {
+func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWriter, *http.Request, []string, []string) {
 	tmpl, err := template.ParseFiles("views/tags.gotemplate", "views/reflagvsflag.gotemplate", "views/judge.gotemplate")
 	if err != nil {
 		log.Fatal("Error parsing the templates for JudgeHandler: ", err)
@@ -354,15 +347,9 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		TagSpecs []tags.UserTagSpec
 	}
 
-	return func(writer http.ResponseWriter, req *http.Request) {
-		addAllTagsCookie(db, &writer)
-
+	return func(writer http.ResponseWriter, req *http.Request, allTags []string, uTags []string) {
 		redirect := func() {
-			target := "/judge"
-
-			addSelectedTagsCookie([]string{"Modern"}, &writer)
-
-			writer.Header().Add("Location", target)
+			writer.Header().Add("Location", "/judge")
 			writer.WriteHeader(302)
 			page := `
             <h1>Thanks for voting!</h1>
@@ -370,29 +357,9 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 			writer.Write([]byte(page))
 		}
 
-		var selectedTagsCookie string
-		var tagsCookie *http.Cookie
-
-		if tagsCookie, err = req.Cookie("selected_tags"); err != nil {
-			selectedTagsCookie = "Modern"
-		} else {
-			selectedTagsCookie = tagsCookie.Value
-		}
-
-		userTags := strings.Split(selectedTagsCookie, ",")
-		if len(userTags) < 1 || (len(userTags) == 1 && len(userTags[0]) < 4) {
-			userTags = []string{"Modern"}
-		}
-
-		addSelectedTagsCookie(userTags, &writer)
-
-		for _, u := range userTags {
-			log.Printf("JudgeHandler got a user tag %s\n", u)
-		}
-
 		tagSpecs := tags.GetAllTags(db)
 		for i, t := range tagSpecs {
-			for _, u := range userTags {
+			for _, u := range uTags {
 				if strings.Compare(string(t.Tag), u) == 0 {
 					tagSpecs[i].Selected = true
 					break
@@ -400,7 +367,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 			}
 		}
 
-		ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), userTags)
+		ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), uTags)
 		if ids == nil {
 			redirect()
 			return
@@ -450,7 +417,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 	}
 }
 
-func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
+func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string, []string) {
 	tmpl, err := template.ParseFiles("views/tags.gotemplate", "views/reflagvsflag.gotemplate", "views/upload.gotemplate")
 	if err != nil {
 		log.Fatal("Error parsing the templates for RanksHandler: ", err)
@@ -460,9 +427,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		TagSpecs []tags.UserTagSpec
 	}
 
-	return func(writer http.ResponseWriter, req *http.Request) {
-		addAllTagsCookie(db, &writer)
-
+	return func(writer http.ResponseWriter, req *http.Request, allTags []string, uTags []string) {
 		fail := func() {
 			writer.Header().Add("Location", "/upload")
 			writer.WriteHeader(302)
@@ -470,26 +435,10 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 			writer.Write([]byte(page))
 		}
 
-		var selectedTagsCookie string
-		var tagsCookie *http.Cookie
-
-		if tagsCookie, err = req.Cookie("selected_tags"); err != nil {
-			selectedTagsCookie = "Modern"
-		} else {
-			selectedTagsCookie = tagsCookie.Value
-		}
-
-		userTags := strings.Split(selectedTagsCookie, ",")
-		if len(userTags) < 1 {
-			userTags = []string{"Modern"}
-		}
-
-		addSelectedTagsCookie(userTags, &writer)
-
 		isSubmission := strings.Compare(req.FormValue("flag-name"), "") != 0
 		isSubmission = isSubmission && (strings.Compare(req.FormValue("flag-path"), "") != 0)
 		if isSubmission {
-			rawTags := selectedTagsCookie
+			rawTags := strings.Join(uTags, ",")
 			flagName := req.FormValue("flag-name")
 			flagPath := req.FormValue("flag-path")
 			flagDesc := req.FormValue("flag-desc")
@@ -511,7 +460,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 					fail()
 					return
 				}
-				for _, t := range userTags {
+				for _, t := range uTags {
 					statement := `
                         INSERT INTO image_tags (image, tag)
                         VALUES ($1, $2)`
@@ -616,12 +565,12 @@ func main() {
 	r.HandleFunc("/index", IndexHandler)
 	r.HandleFunc("/index.html", IndexHandler)
 	r.HandleFunc("/", IndexHandler)
-	r.HandleFunc("/ranks", RanksHandler(db))
-	r.HandleFunc("/users", UsersHandler(db))
-	r.HandleFunc("/stats", StatsHandler(db))
-	r.HandleFunc("/upload", UploadHandler(db))
-	r.HandleFunc("/judge", JudgeHandler(db, scheduler))
-	r.HandleFunc("/vote", VoteHandler(db, scheduler))
+	r.HandleFunc("/ranks", WrapHandler(db, RanksHandler(db)))
+	r.HandleFunc("/users", WrapHandler(db, UsersHandler(db)))
+	r.HandleFunc("/stats", WrapHandler(db, StatsHandler(db)))
+	r.HandleFunc("/upload", WrapHandler(db, UploadHandler(db)))
+	r.HandleFunc("/judge", WrapHandler(db, JudgeHandler(db, scheduler)))
+	r.HandleFunc("/vote", WrapHandler(db, VoteHandler(db, scheduler)))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 
 	fmt.Println("About to ListenAndServe")
