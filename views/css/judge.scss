@@ -6,6 +6,10 @@ figcaption {
   color: lighten($black, 7%);
 }
 
+figure {
+  margin: 5px;
+}
+
 #content {
   div {
     div#tagbar_label {
