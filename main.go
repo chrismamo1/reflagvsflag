@@ -3,11 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
-	//"runtime"
 	sched "github.com/chrismamo1/reflagvsflag/comparisonScheduler"
 	"github.com/chrismamo1/reflagvsflag/tags"
 	"github.com/chrismamo1/reflagvsflag/things"
@@ -15,6 +10,10 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"html/template"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -140,9 +139,13 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 
 		ids.Fst = things.ID(winner)
 		ids.Snd = things.ID(loser)
-		query := "SELECT \"left\", \"right\", balance, heat FROM comparisons WHERE ((\"left\" = %d AND \"right\" = %d) OR (\"right\" = %d AND \"left\" = %d))"
-		query = fmt.Sprintf(query, winner, loser, winner, loser)
-		rows, err := db.Query(query)
+		query := `
+			SELECT "left", "right", balance, heat
+			FROM comparisons
+			WHERE
+				(("left" = $1 AND "right" = $2) OR ("right" = $1 AND "left" = $2))
+			`
+		rows, err := db.Query(query, winner, loser)
 		if err != nil {
 			log.Println("Error selecting comparisons: ", err)
 			redirect()
@@ -173,13 +176,17 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 			nrows = nrows + 1
 		}
 		if nrows == 0 {
-			query = "INSERT INTO comparisons(\"left\", \"right\", balance, heat) VALUES (%d, %d, %d, %d);"
-			query = fmt.Sprintf(query, winner, loser, -1, heat)
+			query = `
+				INSERT INTO comparisons("left", "right", balance, heat)
+				VALUES ($1, $2, -1, $3);`
+			_, err = db.Exec(query, winner, loser, heat)
 		} else {
-			query = "UPDATE comparisons SET balance = %d, heat = %d  WHERE \"left\" = %d AND \"right\" = %d;"
-			query = fmt.Sprintf(query, balance, heat, left, right)
+			query = `
+				UPDATE comparisons
+				SET balance = $1, heat = $2
+				WHERE "left" = $3 AND "right" = $4;`
+			_, err = db.Exec(query, balance, heat, left, right)
 		}
-		_, err = db.Exec(query)
 		if err != nil {
 			log.Println(err)
 			redirect()
@@ -412,8 +419,6 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		if err := tmpl.ExecuteTemplate(writer, "container", tmplParams); err != nil {
 			log.Println("Failure executing JudgeHandler template: ", err)
 		}
-		/*page = fmt.Sprintf(page, left.Id, right.Id, things.RenderNormal(left), right.Id, left.Id, things.RenderNormal(right))
-		  writer.Write([]byte(page))*/
 	}
 }
 
