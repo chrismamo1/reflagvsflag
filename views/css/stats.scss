@@ -1,17 +1,17 @@
 @import "_reflagvsflag.scss";
 
 #content {
+  margin: 5px;
+  padding: 5px;
+  font-size: 2em;
   div {
     margin: 5px;
     padding: 5px;
     text-align: center;
-    text-decoration: underline;
+    text-decoration: none;
     div {
       font-weight: bold;
-      text-decoration: none;
+      text-decoration: underline;
     }
   }
-  margin: 5px;
-  padding: 5px;
-  font-size: 2em;
 }

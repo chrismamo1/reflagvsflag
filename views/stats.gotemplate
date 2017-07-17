@@ -1,31 +1,31 @@
 {{define "content"}}
 
 <div id="content" class="pure-u-1 pure-u-lg-19-24">
-  <div class="pure-u-1 pure-u-md-1-3">
+  <div class="pure-u-1 pure-u-md-7-24">
     <div>
       Total Votes Cast
     </div>
     {{.TotalVotes}}
   </div>
-  <div class="pure-u-1 pure-u-md-1-3">
+  <div class="pure-u-1 pure-u-md-7-24">
     <div>
       Standard Deviation of Elo Scores
     </div>
     {{.EloStdDev}}
   </div>
-  <div class="pure-u-1 pure-u-md-1-3">
+  <div class="pure-u-1 pure-u-md-7-24">
     <div>
       Unique Users:
     </div>
     {{.TotalUsers}}
   </div>
-  <div class="pure-u-1 pure-u-md-1-3">
+  <div class="pure-u-1 pure-u-md-7-24">
     <div>
       Total Flags in the Leaderboard
     </div>
     {{.TotalFlags}}
   </div>
-  <div class="pure-u-1 pure-u-md-1-3">
+  <div class="pure-u-1 pure-u-md-7-24">
     <div>
       Standard Deviation of Exposure for Flags
     </div>
