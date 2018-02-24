@@ -442,7 +442,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 			writer.Write([]byte(page))
 		}
 
-		if req.Method == "Get" {
+		if req.Method == "GET" {
 			users.GetByAddr(db, req.RemoteAddr)
 
 			tmplParams := struct {
