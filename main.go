@@ -455,6 +455,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 				log.Println("Error while executing template for upload: ", err)
 			}
 		} else {
+			log.Println("About to try to create a flag...")
 			req.ParseMultipartForm(2 * (1 << 20)) // max memory of 2 megs
 			file, header, err := req.FormFile("flag-path")
 			if err != nil {

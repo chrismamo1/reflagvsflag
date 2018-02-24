@@ -40,6 +40,7 @@ func UploadImage(file multipart.File, header *multipart.FileHeader) string {
 		}
 		nRead = nRead + int64(k)
 	}
+	log.Println("Image has size of ", nRead, " bytes")
 	fileBytes := bytes.NewReader(buffer[0:nRead])
 	fileType := http.DetectContentType(buffer[0:nRead])
 
