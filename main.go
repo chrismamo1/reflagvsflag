@@ -457,7 +457,12 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 		} else {
 			req.ParseMultipartForm(2 * (1 << 20)) // max memory of 2 megs
 			file, header, err := req.FormFile("flag-path")
+			if err != nil {
+				fail()
+				return
+			}
 			imgName := assets.UploadImage(file, header)
+			err = file.Close()
 			if err != nil {
 				fail()
 				return

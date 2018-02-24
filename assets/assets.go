@@ -17,7 +17,6 @@ import (
 )
 
 func UploadImage(file multipart.File, header *multipart.FileHeader) string {
-	defer file.Close()
 	// https://medium.com/@questhenkart/s3-image-uploads-via-aws-sdk-with-golang-63422857c548
 	awsAccessKey := os.ExpandEnv("${AWS_ACCESS_KEY}")
 	awsSecret := os.ExpandEnv("${AWS_SECRET}")
