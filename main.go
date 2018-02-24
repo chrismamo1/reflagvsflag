@@ -464,7 +464,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 			}
 			rawTags := strings.Join(uTags, ",")
 			flagName := req.FormValue("flag-name")
-			flagPath := "http://d1tefi9crrjlgi.cloudfront.net/user-flags/" + flagName
+			flagPath := "http://d1tefi9crrjlgi.cloudfront.net/user-flags/" + imgName
 			flagDesc := req.FormValue("flag-desc")
 			log.Printf("Creating a flag with name \"%s\", path \"%s\", and tags %s\n", flagName, flagPath, rawTags)
 
