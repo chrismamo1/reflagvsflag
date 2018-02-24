@@ -3,12 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	sched "github.com/chrismamo1/reflagvsflag/comparisonScheduler"
-	"github.com/chrismamo1/reflagvsflag/tags"
-	"github.com/chrismamo1/reflagvsflag/things"
-	"github.com/chrismamo1/reflagvsflag/users"
-	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -17,6 +11,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/chrismamo1/reflagvsflag/assets"
+	sched "github.com/chrismamo1/reflagvsflag/comparisonScheduler"
+	"github.com/chrismamo1/reflagvsflag/tags"
+	"github.com/chrismamo1/reflagvsflag/things"
+	"github.com/chrismamo1/reflagvsflag/users"
+	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 )
 
 func initDb() *sql.DB {
@@ -440,12 +442,29 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 			writer.Write([]byte(page))
 		}
 
-		isSubmission := strings.Compare(req.FormValue("flag-name"), "") != 0
-		isSubmission = isSubmission && (strings.Compare(req.FormValue("flag-path"), "") != 0)
-		if isSubmission {
+		if req.Method == "Get" {
+			users.GetByAddr(db, req.RemoteAddr)
+
+			tmplParams := struct {
+				ContentParams CParams
+				Style         string
+			}{ContentParams: CParams{TagSpecs: tags.MakeSpecs(db, []tags.Tag{})},
+				Style: "upload"}
+			err := tmpl.ExecuteTemplate(writer, "container", tmplParams)
+			if err != nil {
+				log.Println("Error while executing template for upload: ", err)
+			}
+		} else {
+			req.ParseMultipartForm(2 * (1 << 20)) // max memory of 2 megs
+			file, header, err := req.FormFile("flag-path")
+			imgName := assets.UploadImage(file, header)
+			if err != nil {
+				fail()
+				return
+			}
 			rawTags := strings.Join(uTags, ",")
 			flagName := req.FormValue("flag-name")
-			flagPath := req.FormValue("flag-path")
+			flagPath := "http://d1tefi9crrjlgi.cloudfront.net/user-flags/" + flagName
 			flagDesc := req.FormValue("flag-desc")
 			log.Printf("Creating a flag with name \"%s\", path \"%s\", and tags %s\n", flagName, flagPath, rawTags)
 
@@ -477,18 +496,6 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 				}
 				writer.Header().Add("Location", "/")
 				writer.WriteHeader(302)
-			}
-		} else {
-			users.GetByAddr(db, req.RemoteAddr)
-
-			tmplParams := struct {
-				ContentParams CParams
-				Style         string
-			}{ContentParams: CParams{TagSpecs: tags.MakeSpecs(db, []tags.Tag{})},
-				Style: "upload"}
-			err := tmpl.ExecuteTemplate(writer, "container", tmplParams)
-			if err != nil {
-				log.Println("Error while executing template for upload: ", err)
 			}
 		}
 	}
