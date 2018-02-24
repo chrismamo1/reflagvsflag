@@ -47,7 +47,7 @@ func UploadImage(file multipart.File, header *multipart.FileHeader) string {
 	h.Write(buffer[0:nRead])
 	checkSum := fmt.Sprintf("%x", h.Sum(nil))
 
-	path := "/user-flags/" + checkSum
+	path := "/user-flags/" + checkSum + "_" + header.Filename
 	params := &s3.PutObjectInput{
 		Bucket:        aws.String("all-flags-of-sovereign-states-may2017"),
 		Key:           aws.String(path),
