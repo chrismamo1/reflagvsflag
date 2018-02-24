@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -517,48 +516,6 @@ func IndexHandler(writer http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func refreshImages(db *sql.DB) {
-	files, err := ioutil.ReadDir("./static/flags")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, file := range files {
-		tx, err := db.Begin()
-		if err != nil {
-			log.Fatal(err)
-		}
-		var max int
-		err = tx.QueryRow("SELECT MAX(img_index) FROM images").Scan(&max)
-		if err != nil {
-			//
-			max = 0
-		}
-
-		query := `INSERT INTO images (name, path, img_index, heat, description) VALUES ($1, $2, $3, 0, '')`
-
-		path, err := ioutil.ReadFile("./static/flags/" + file.Name())
-		if err != nil {
-			fmt.Printf("Couldn't open the file \"%s\":\n")
-			log.Fatal(err)
-		}
-
-		_, err = tx.Exec(query, file.Name(), string(path), max+1)
-		if err != nil {
-			fmt.Printf("problem encountered while trying to run the query \"%s\":\n", query)
-			fmt.Printf("(used values: \"%s\", \"%s\", %d)\n", file.Name(), string(path), max+1)
-			log.Print(err)
-		}
-
-		err = tx.Commit()
-
-		if err != nil {
-			fmt.Println("Found a non-fatal problem adding an image")
-			// duplicate image
-		}
-	}
-}
-
 func main() {
 	fmt.Println("About to initialize the database")
 	db := initDb()
@@ -566,9 +523,6 @@ func main() {
 	defer db.Close()
 
 	scheduler := sched.Make(db, 1)
-
-	fmt.Println("About to refresh images")
-	refreshImages(db)
 
 	fmt.Println("About to create the mux")
 	r := mux.NewRouter()
