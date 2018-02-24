@@ -5,13 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/chrismamo1/reflagvsflag/tags"
-	_ "github.com/lib/pq"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"regexp"
 	"strings"
+
+	"github.com/chrismamo1/reflagvsflag/tags"
+	_ "github.com/lib/pq"
 )
 
 type ID int
@@ -417,14 +418,11 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
 		log.Fatal("Error populating imgs in GetTransactionWithTags: ", err)
 	}
 
-	for _, t := range tags {
-		var id int
-		log.Printf("Trying with tag %s\n", t)
+	for _, _ = range tags {
 		query := `SELECT id FROM imgs`
-		if err := tx.QueryRow(query).Scan(&id); err != nil {
+		if err := tx.QueryRow(query).Scan(nil); err != nil {
 			log.Println("Couldn't get anything out of imgs: ", err)
 		}
-		log.Printf("IMGS has a thing %d for tag %s\n", id, t)
 	}
 
 	return tx
