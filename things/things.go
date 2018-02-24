@@ -419,8 +419,9 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
 	}
 
 	for _, _ = range tags {
+		var id int
 		query := `SELECT id FROM imgs`
-		if err := tx.QueryRow(query).Scan(nil); err != nil {
+		if err := tx.QueryRow(query).Scan(&id); err != nil {
 			log.Println("Couldn't get anything out of imgs: ", err)
 		}
 	}
