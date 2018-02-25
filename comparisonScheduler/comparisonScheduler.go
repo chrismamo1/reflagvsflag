@@ -117,11 +117,10 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPai
 	var elo float64
 
 	query := `
-        SELECT id, COALESCE(imgs.heat, 0) AS s_heat, elo
+        SELECT id, heat, elo
         FROM
             imgs
-        GROUP BY (id, s_heat, elo)
-        ORDER BY s_heat ASC LIMIT 1
+        ORDER BY heat + RANDOM() * 2 ASC LIMIT 1
     `
 	if err := tx.QueryRow(query).Scan(&ids.Fst, &s_heat, &elo); err != nil {
 		log.Println("Error keeping us from employing the user-based heat check: ", err)
