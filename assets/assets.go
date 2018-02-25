@@ -57,6 +57,7 @@ func UploadImage(file multipart.File, header *multipart.FileHeader) string {
 		Body:          fileBytes,
 		ContentLength: aws.Int64(nRead),
 		ContentType:   aws.String(fileType),
+		ACL:           aws.String("public-read"),
 	}
 	_, err = svc.PutObject(params)
 	if err != nil {
