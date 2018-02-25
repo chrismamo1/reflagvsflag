@@ -62,5 +62,5 @@ func UploadImage(file multipart.File, header *multipart.FileHeader) string {
 	if err != nil {
 		log.Println("Error uploading an object to S3: ", err)
 	}
-	return checkSum
+	return checkSum + "_" + header.Filename
 }
