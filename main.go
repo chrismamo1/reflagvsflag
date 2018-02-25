@@ -378,6 +378,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 			}
 		}
 
+		log.Println("Asking the scheduler for a matchup from ", len(uTags), " tags")
 		ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), uTags)
 		if ids == nil {
 			redirect()
