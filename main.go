@@ -366,6 +366,9 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		}
 
 		tagSpecs := tags.GetAllTags(db)
+		if len(uTags) == 0 {
+			uTags = []string{"Modern"}
+		}
 		for i, t := range tagSpecs {
 			for _, u := range uTags {
 				if strings.Compare(string(t.Tag), u) == 0 {
