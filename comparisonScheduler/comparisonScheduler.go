@@ -3,13 +3,13 @@ package comparisonScheduler
 import (
 	"database/sql"
 	"errors"
-	"github.com/chrismamo1/reflagvsflag/things"
-	"github.com/chrismamo1/reflagvsflag/users"
-	_ "github.com/lib/pq"
 	"log"
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/chrismamo1/reflagvsflag/things"
+	_ "github.com/lib/pq"
 )
 
 type Priority int
@@ -103,7 +103,7 @@ func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
 	}
 }
 
-func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPair {
+func (this *Scheduler) NextRequest(tags []string) *things.IDPair {
 	if len(tags) < 1 {
 		tags = []string{"Modern"}
 	}
@@ -120,11 +120,10 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPai
         FROM
             views,
             imgs
-        WHERE "user" = $1
         GROUP BY (id, s_heat, elo)
         ORDER BY s_heat ASC LIMIT 1
     `
-	if err := tx.QueryRow(query, user.Id).Scan(&ids.Fst, &s_heat, &elo); err != nil {
+	if err := tx.QueryRow(query).Scan(&ids.Fst, &s_heat, &elo); err != nil {
 		log.Println("Error keeping us from employing the user-based heat check: ", err)
 		if err := tx.Commit(); err != nil {
 			log.Fatal("Error while trying to commit the aborted transaction: ", err)

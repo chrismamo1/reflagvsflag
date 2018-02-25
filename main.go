@@ -375,7 +375,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 			}
 		}
 
-		ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), uTags)
+		ids := scheduler.NextRequest(uTags)
 		if ids == nil {
 			redirect()
 			return
