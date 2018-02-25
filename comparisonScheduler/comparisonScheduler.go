@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/chrismamo1/reflagvsflag/things"
+	"github.com/chrismamo1/reflagvsflag/users"
 	_ "github.com/lib/pq"
 )
 
@@ -103,7 +104,7 @@ func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
 	}
 }
 
-func (this *Scheduler) NextRequest(tags []string) *things.IDPair {
+func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPair {
 	if len(tags) < 1 {
 		tags = []string{"Modern"}
 	}
