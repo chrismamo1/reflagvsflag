@@ -117,9 +117,8 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPai
 	var elo float64
 
 	query := `
-        SELECT id, COALESCE(views.heat, 0) + COALESCE(imgs.heat, 0) AS s_heat, elo
+        SELECT id, COALESCE(imgs.heat, 0) AS s_heat, elo
         FROM
-            views,
             imgs
         GROUP BY (id, s_heat, elo)
         ORDER BY s_heat ASC LIMIT 1
