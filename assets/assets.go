@@ -37,7 +37,8 @@ func UploadImage(file multipart.File, header *multipart.FileHeader) string {
 		upper := nRead + 4096
 		n, err := file.Read(buffer[nRead:upper])
 		if err != nil {
-			log.Println("Error reading the multipart file into a byte array")
+			log.Println("Error reading the multipart file into a byte array: ", err)
+			break
 		}
 		nRead = nRead + int64(n)
 	}
