@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -45,6 +46,9 @@ func UploadImage(file multipart.File, header *multipart.FileHeader) string {
 	log.Println("Image has size of ", nRead, " bytes")
 	fileBytes := bytes.NewReader(buffer[0:nRead])
 	fileType := http.DetectContentType(buffer[0:nRead])
+	if strings.HasSuffix(header.Filename, ".svg") {
+		fileType = "image/svg+xml"
+	}
 
 	h := md5.New()
 	h.Write(buffer[0:nRead])
