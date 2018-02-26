@@ -100,7 +100,7 @@ func WrapHandler(db *sql.DB, h func(http.ResponseWriter, *http.Request, []string
 		}
 
 		userTags := strings.Split(selectedTagsCookie, ",")
-		if len(userTags) < 1 {
+		if len(userTags) < 1 || (len(userTags) == 1 && userTags[0] == "") {
 			userTags = []string{"Modern"}
 		}
 
@@ -366,9 +366,6 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		}
 
 		tagSpecs := tags.GetAllTags(db)
-		if len(uTags) == 0 {
-			uTags = []string{"Modern"}
-		}
 		for i, t := range tagSpecs {
 			for _, u := range uTags {
 				if strings.Compare(string(t.Tag), u) == 0 {
