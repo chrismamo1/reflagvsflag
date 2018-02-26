@@ -400,6 +400,7 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
 
 	for _, t := range tags {
 		statement := `INSERT INTO given_tags (tag) VALUES ($1)`
+		log.Printf("Inserting %s into given_tags table\n", t)
 		if _, err := tx.Exec(statement, t); err != nil {
 			log.Fatal("Error adding a tag to given_tags in GetTransactionWithTags: ", err)
 		}
