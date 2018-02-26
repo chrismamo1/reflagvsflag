@@ -102,14 +102,35 @@ func WrapHandler(db *sql.DB, h func(http.ResponseWriter, *http.Request, []string
 			selectedTagsCookie = selectedTagsCookie + "," + tagsCookie.Value
 		}
 
-		userTags := strings.Split(selectedTagsCookie, ",")
-		if len(userTags) < 1 || (len(userTags) == 1 && userTags[0] == "") {
-			userTags = []string{"Modern"}
+		tmpTags := strings.Split(selectedTagsCookie, ",")
+		if len(tmpTags) < 1 || (len(tmpTags) == 1 && tmpTags[0] == "") {
+			tmpTags = []string{"Modern"}
+		}
+
+		allTags := tags.GetAllTags(db)
+
+		var userTags []string
+
+		for _, t := range tmpTags {
+			for _, r := range allTags {
+				if t == string(r.Tag) {
+					already := false
+					for _, u := range userTags {
+						if u == t {
+							already = true
+							break
+						}
+					}
+					if !already {
+						tmp := append(userTags, t)
+						userTags = tmp
+					}
+				}
+			}
 		}
 
 		addSelectedTagsCookie(userTags, &writer)
 
-		allTags := tags.GetAllTags(db)
 		sAllTags := make([]string, len(allTags))
 		for i, tag := range allTags {
 			sAllTags[i] = string(tag.Tag)
