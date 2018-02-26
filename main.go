@@ -89,14 +89,17 @@ func WrapHandler(db *sql.DB, h func(http.ResponseWriter, *http.Request, []string
 	return func(writer http.ResponseWriter, req *http.Request) {
 		addAllTagsCookie(db, &writer)
 
-		var selectedTagsCookie string
+		var selectedTagsCookie string = ""
 		var tagsCookie *http.Cookie
 
 		tagsCookie, err := req.Cookie("selected_tags")
+		if req.FormValue("tags") != "" {
+			selectedTagsCookie = req.FormValue("tags")
+		}
 		if err != nil {
-			selectedTagsCookie = "Modern"
+			selectedTagsCookie = selectedTagsCookie + "," + "Modern"
 		} else {
-			selectedTagsCookie = tagsCookie.Value
+			selectedTagsCookie = selectedTagsCookie + "," + tagsCookie.Value
 		}
 
 		userTags := strings.Split(selectedTagsCookie, ",")
