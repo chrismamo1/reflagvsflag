@@ -391,7 +391,7 @@ func GetTransactionWithTags(db *sql.DB, tags []string) *sql.Tx {
             elo REAL NOT NULL DEFAULT(1000.0)
         ) ON COMMIT DROP;
         CREATE TEMPORARY TABLE given_tags (
-            tag TEXT UNIQUE
+            tag TEXT
         ) ON COMMIT DROP;
     `
 	if _, err := tx.Exec(statement); err != nil {
