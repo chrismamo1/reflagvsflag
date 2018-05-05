@@ -43,7 +43,7 @@ type Comparison struct {
 	Balance int
 }
 
-func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool) template.HTML {
+func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool, showDeets bool) template.HTML {
 	matched, err := regexp.MatchString(".*\\.url$", thing.Path)
 	if err != nil {
 		log.Fatal(err)
@@ -67,72 +67,80 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool)
             </video>
             `
 		} else {
-			if showElo {
-				format = `
-                    <div style="padding: 5px">
-                        <center>
-                            <h3>{{.Name}} (ELO: {{.Elo}})</h3>
+			var deets1 = "", deets2 = "" string;
+			if showDeets {
+				if showElo {
+					deets1 = `
+						<center>
+							<h3>{{.Name}} (ELO: {{.Elo}})</h3>
                         </center>
-                        <figure>
-                            <img
-                                style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
-                                src='{{.Path}}'>
-                            </img>
-                            <figcaption>{{.Desc}}</figcaption>
-                        </figure>
-                    </div>
-                `
-			} else {
-				format = `
-                    <div style="padding: 5px">
-                        <center>
+					`
+				} else {
+					deets1 = `
+						<center>
                             <h3>{{.Name}}</h3>
                         </center>
-                        <figure>
+					`
+				}
+				deets2 = "<figcaption>{{.Desc}}</figcaption>"
+			}
+			if showElo {
+				format = `<div style="padding: 5px">` + deets1 +
+					`	<figure>
+                            <img
+                                style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                                src='{{.Path}}'>
+                            </img>`
+					+ deets2
+					+ `</figure></div>`
+			} else {
+				format = `
+					<div style="padding: 5px">` + deets1 +
+						`<figure>
                             <img
                                 style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
                                 src='{{.Path}}'>
                             </img>
-                            <figcaption>{{.Desc}}</figcaption>
+                            ` + deets2 + `
                         </figure>
                     </div>
                 `
 			}
 		}
-	} else {
-		if showElo {
-			format = `
-                <div style="padding: 5px">
-                    <center>
-                        <h3>{{.Name}} (ELO: {{.Elo}})</h3>
-                    </center>
-                    <figure>
-                        <img
-                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
-                            src='{{.Path}}'>
-                        </img>
-                        <figcaption>{{.Desc}}</figcaption>
-                    </figure>
-                </div>
-            `
-		} else {
-			format = `
-                <div style="padding: 5px">
-                    <center>
-                        <h3>{{.Name}}</h3>
-                    </center>
-                    <figure>
-                        <img
-                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
-                            src='{{.Path}}'>
-                        </img>
-                        <figcaption>{{.Desc}}</figcaption>
-                    </figure>
-                </div>
-            `
-		}
-		thing.Path = root + thing.Path
-	}
+	} /* else {
+			if showElo {
+				format = `
+	                <div style="padding: 5px">
+	                    <center>
+	                        <h3>{{.Name}} (ELO: {{.Elo}})</h3>
+	                    </center>
+	                    <figure>
+	                        <img
+	                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+	                            src='{{.Path}}'>
+	                        </img>
+	                        <figcaption>{{.Desc}}</figcaption>
+	                    </figure>
+	                </div>
+	            `
+			} else {
+				format = `
+	                <div style="padding: 5px">
+	                    <center>
+	                        <h3>{{.Name}}</h3>
+	                    </center>
+	                    <figure>
+	                        <img
+	                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+	                            src='{{.Path}}'>
+	                        </img>
+	                        <figcaption>{{.Desc}}</figcaption>
+	                    </figure>
+	                </div>
+	            `
+			}
+			thing.Path = root + thing.Path
+		}*/
 	templ, err := template.New("image").Parse(format)
 	if err != nil {
 		log.Fatal(err)
@@ -165,11 +173,11 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool)
 }
 
 func RenderSmall(thing Thing) template.HTML {
-	return render(thing, "", 200, 200, true)
+	return render(thing, "", 200, 200, true, true)
 }
 
-func RenderNormal(thing Thing) template.HTML {
-	return render(thing, "", 600, 600, false)
+func RenderNormal(thing Thing, showDeets bool) template.HTML {
+	return render(thing, "", 600, 600, false, showDeets)
 }
 
 func getHead2HeadComparison(db *sql.DB, a ID, b ID) (Comparison, error) {

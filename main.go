@@ -399,7 +399,6 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 			}
 		}
 
-		log.Println("Asking the scheduler for a matchup from ", len(uTags), " tags")
 		ids := scheduler.NextRequest(*users.GetByAddr(db, req.RemoteAddr), uTags)
 		if ids == nil {
 			redirect()
@@ -437,9 +436,9 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 			Style         string
 		}{ContentParams: CParams{
 			FirstId:  int(left.Id),
-			First:    things.RenderNormal(left),
+			First:    things.RenderNormal(left, false),
 			SecondId: int(right.Id),
-			Second:   things.RenderNormal(right),
+			Second:   things.RenderNormal(right, false),
 			TagSpecs: tagSpecs},
 			Style: "judge"}
 		if err := tmpl.ExecuteTemplate(writer, "container", tmplParams); err != nil {
