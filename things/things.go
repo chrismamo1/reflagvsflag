@@ -85,16 +85,16 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
 				deets2 = "<figcaption>{{.Desc}}</figcaption>"
 			}
 			if showElo {
-				format = `<div style="padding: 5px">` + deets1 +
-					`	<figure>
+				format = `<div style="padding: 5px">` + deets1 + `
+						<figure>
                             <img
                                 style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
                                 src='{{.Path}}'>
                             </img>` + deets2 + `</figure></div>`
 			} else {
 				format = `
-					<div style="padding: 5px">` + deets1 +
-					`<figure>
+					<div style="padding: 5px">` + deets1 + `
+					<figure>
                             <img
                                 style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
                                 src='{{.Path}}'>
@@ -105,9 +105,9 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
                 `
 			}
 		}
-	} /* else {
-			if showElo {
-				format = `
+	} else {
+		if showElo {
+			format = `
 	                <div style="padding: 5px">
 	                    <center>
 	                        <h3>{{.Name}} (ELO: {{.Elo}})</h3>
@@ -121,8 +121,8 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
 	                    </figure>
 	                </div>
 	            `
-			} else {
-				format = `
+		} else {
+			format = `
 	                <div style="padding: 5px">
 	                    <center>
 	                        <h3>{{.Name}}</h3>
@@ -136,9 +136,9 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
 	                    </figure>
 	                </div>
 	            `
-			}
-			thing.Path = root + thing.Path
-		}*/
+		}
+		thing.Path = root + thing.Path
+	}
 	templ, err := template.New("image").Parse(format)
 	if err != nil {
 		log.Fatal(err)

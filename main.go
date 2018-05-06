@@ -431,6 +431,10 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		bumpExposure(user, ids.Snd)
 
 		left, right := things.SelectImages(db, *ids)
+		left.Name = ""
+		right.Name = ""
+		left.Desc = ""
+		right.Desc = ""
 		tmplParams := struct {
 			ContentParams CParams
 			Style         string
