@@ -67,7 +67,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
             </video>
             `
 		} else {
-			var deets1 = "", deets2 = "" string;
+			var deets1, deets2 string
 			if showDeets {
 				if showElo {
 					deets1 = `
@@ -90,13 +90,11 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
                             <img
                                 style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
                                 src='{{.Path}}'>
-                            </img>`
-					+ deets2
-					+ `</figure></div>`
+                            </img>` + deets2 + `</figure></div>`
 			} else {
 				format = `
 					<div style="padding: 5px">` + deets1 +
-						`<figure>
+					`<figure>
                             <img
                                 style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
                                 src='{{.Path}}'>
