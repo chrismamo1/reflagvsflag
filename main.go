@@ -406,7 +406,12 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 		}
 
 		bumpExposure := func(user *users.User, img things.ID) {
-			var exists bool
+			query := `UPDATE images SET heat = heat + 1 WHERE id = $1`
+			_, err := db.Exec(query, img)
+			if err != nil {
+				log.Println("Error updating heat for an image: ", err)
+			}
+			/*var exists bool
 			query := `SELECT (EXISTS(SELECT * FROM views WHERE "user" = $1 AND image = $2))`
 			err := db.QueryRow(query, user.Id, img).Scan(&exists)
 			if err != nil {
@@ -422,7 +427,7 @@ func JudgeHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrit
 				if _, err := db.Exec(query, user.Id, img); err != nil {
 					log.Fatal(err)
 				}
-			}
+			}*/
 		}
 
 		user := users.GetByAddr(db, req.RemoteAddr)
