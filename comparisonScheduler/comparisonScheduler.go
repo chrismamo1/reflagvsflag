@@ -176,7 +176,7 @@ func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPai
                  ORDER BY ABS(elo-$1) ASC
                  LIMIT 10) tbl
             WHERE id <> $2
-            ORDER BY heat + RANDOM() * 10 LIMIT 1;
+            ORDER BY heat + RANDOM() * 2 LIMIT 1;
         `
 		if err := tx.QueryRow(query, elo, ids.Fst).Scan(&ids.Snd); err != nil {
 			log.Println("Error selecting: ", err)
