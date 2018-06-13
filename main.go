@@ -22,6 +22,7 @@ import (
 
 func initDb() *sql.DB {
 	dbParams := os.ExpandEnv("user=db_master dbname=reflagvsflag_db sslmode=disable password=${REFLAGVSFLAG_DB_PASSWORD} host=${REFLAGVSFLAG_DB_HOST}")
+	log.Printf(os.ExpandEnv("DB Host: ${REFLAGVSFLAG_DB_HOST}\n"))
 	db, err := sql.Open("postgres", dbParams)
 	if err != nil {
 		log.Fatal("Problem opening a connection to the SQL server: ", err)
