@@ -563,7 +563,7 @@ func main() {
 
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         ":80",
+		Addr:         "localhost:80",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
