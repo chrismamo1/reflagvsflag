@@ -75,11 +75,11 @@ func (this *Scheduler) FillRequest(tags []string, winner things.ID, loser things
 		var aCount, otherCount int
 		tx := things.GetTransactionWithTags(this.db, tags)
 		defer tx.Commit()
-		if err := tx.QueryRow(`SELECT COUNT(*) FROM imgs`).Scan(aCount); err != nil {
-			log.Fatal("Error getting the count of tags that the user is being presented with")
+		if err := tx.QueryRow(`SELECT COUNT(*) FROM imgs`).Scan(&aCount); err != nil {
+			log.Fatal("Error getting the count of tags that the user is being presented with", err)
 		}
-		if err := this.db.QueryRow(`SELECT COUNT(*) FROM images`).Scan(otherCount); err != nil {
-			log.Fatal("Error getting the total count of all images")
+		if err := this.db.QueryRow(`SELECT COUNT(*) FROM images`).Scan(&otherCount); err != nil {
+			log.Fatal("Error getting the total count of all images", err)
 		}
 		participation := float64(aCount) / float64(otherCount)
 		participation = participation * participation
