@@ -11,8 +11,13 @@ let make tag::(tag: Tags.tag) ::handler _children => {
         first
       }
     };
+    let displayText =
+      switch tag.name {
+      | "Modern" => "Country"
+      | x => x
+      };
     <button _type="button" value=tag.name onClick=handler className>
-      (ReasonReact.stringToElement tag.name)
+      (ReasonReact.stringToElement displayText)
     </button>
   }
 };
