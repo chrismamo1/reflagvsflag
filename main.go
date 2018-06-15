@@ -220,7 +220,7 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 		}
 
 		redirect()
-		scheduler.FillRequest(things.ID(winner), things.ID(loser))
+		scheduler.FillRequest(tags, things.ID(winner), things.ID(loser))
 	}
 }
 

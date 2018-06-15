@@ -67,11 +67,22 @@ func (this *Scheduler) HasRequest(ids things.IDPair) bool {
 	return this.hasRequest(ids)
 }
 
-func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
+func (this *Scheduler) FillRequest(tags []string, winner things.ID, loser things.ID) {
 	ids := things.IDPair{Fst: winner, Snd: loser}
 	log.Printf("Filling a request for %d, %d\n", int(winner), int(loser))
 	if this.hasRequest(ids) {
 		var elo1, elo2 float64
+		var aCount, otherCount int
+		tx := things.GetTransactionWithTags(this.db, tags)
+		defer tx.Commit()
+		if err := tx.QueryRow(`SELECT COUNT(*) FROM imgs`).Scan(aCount); err != nil {
+			log.Fatal("Error getting the count of tags that the user is being presented with")
+		}
+		if err := this.db.QueryRow(`SELECT COUNT(*) FROM images`).Scan(otherCount); err != nil {
+			log.Fatal("Error getting the total count of all images")
+		}
+		participation := float64(aCount) / float64(otherCount)
+		participation = participation * participation
 		query := `SELECT elo FROM images WHERE id = $1;`
 		if err := this.db.QueryRow(query, winner).Scan(&elo1); err != nil {
 			log.Fatal("Error getting 1st elo in FillRequest: ", err)
@@ -85,8 +96,9 @@ func (this *Scheduler) FillRequest(winner things.ID, loser things.ID) {
 		e2 := r2 / (r1 + r2)
 		s1 := 1.0
 		s2 := 0.0
-		elo1 = elo1 + 10.0*(s1-e1)
-		elo2 = elo2 + 10.0*(s2-e2)
+		elo1 = elo1 + 10.0*(s1-e1)*participation
+		elo2 = elo2 + 10.0*(s2-e2)*participation
+		log.Println("Participation: ", participation)
 		log.Printf("New ELO for image %d: %f\n", int(winner), elo1)
 		log.Printf("New ELO for image %d: %f\n", int(loser), elo2)
 		statement := "UPDATE images SET elo = $1 WHERE id = $2"
