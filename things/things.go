@@ -303,67 +303,6 @@ func SelectImages(db *sql.DB, ids IDPair) (Thing, Thing) {
 	return img1, img2
 }
 
-/* please note that this function is nondeterministic: it only returns a random element from the set
-   of elements which have the minimum heat */
-func GetColdestPair(db *sql.DB) IDPair {
-	var ids IDPair
-	query := `
-    SELECT "left", "right"
-    FROM comparisons
-    WHERE heat = (SELECT heat FROM comparisons ORDER BY heat ASC LIMIT 1)
-    ORDER BY RANDOM()
-    LIMIT 1
-    `
-	err := db.QueryRow(query).Scan(&ids.Fst, &ids.Snd)
-	if err != nil {
-		// the comparisons table might be empty, let's try getting two random ID's
-		err := db.QueryRow("SELECT id FROM images ORDER BY RANDOM() LIMIT 1").Scan(&ids.Fst)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = db.QueryRow("SELECT id FROM images WHERE id != $1 ORDER BY RANDOM() LIMIT 1", ids.Fst).Scan(&ids.Snd)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	fmt.Printf("coldest pair: %d, %d\n", ids.Fst, ids.Snd)
-	return ids
-}
-
-func GetRandomPair(db *sql.DB) IDPair {
-	var ids IDPair
-	err := db.QueryRow("SELECT id FROM images ORDER BY RANDOM() LIMIT 1").Scan(&ids.Fst)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.QueryRow("SELECT id FROM images WHERE id != $1 ORDER BY RANDOM() LIMIT 1", ids.Fst).Scan(&ids.Snd)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("random pair: %d, %d\n", ids.Fst, ids.Snd)
-	return ids
-}
-
-func GetRandomIdAboveIndex(db *sql.DB, index int) ID {
-	var rv ID
-	err := db.QueryRow("SELECT id FROM images WHERE img_index > $1 ORDER BY RANDOM() LIMIT 1", index).Scan(&rv)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return rv
-}
-
-func GetRandomPairAboveIndex(db *sql.DB, index int) IDPair {
-	var ids IDPair
-	ids.Fst = GetRandomIdAboveIndex(db, index)
-	err := db.QueryRow("SELECT id FROM images WHERE id != $1 AND img_index > $2 ORDER BY RANDOM() LIMIT 1", ids.Fst, index).Scan(&ids.Snd)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("random pair: %d, %d\n", ids.Fst, ids.Snd)
-	return ids
-}
-
 func GetTags(db *sql.DB) []string {
 	var tags []string
 	query := `SELECT name FROM tags`
