@@ -154,7 +154,6 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 			writer.Write([]byte(page))
 		}
 
-		var ids things.IDPair
 		winner, _ := strconv.Atoi(req.FormValue("winner"))
 		loser, _ := strconv.Atoi(req.FormValue("loser"))
 
@@ -162,62 +161,6 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 
 		user := users.GetByAddr(db, req.RemoteAddr)
 		user.SubmitVote(db, things.ID(winner), things.ID(loser))
-
-		ids.Fst = things.ID(winner)
-		ids.Snd = things.ID(loser)
-		query := `
-			SELECT "left", "right", balance, heat
-			FROM comparisons
-			WHERE
-				(("left" = $1 AND "right" = $2) OR ("right" = $1 AND "left" = $2))
-			`
-		rows, err := db.Query(query, winner, loser)
-		if err != nil {
-			log.Println("Error selecting comparisons: ", err)
-			redirect()
-			return
-		}
-		defer rows.Close()
-
-		nrows := 0
-
-		var left, right, balance, heat int
-		for rows.Next() {
-			err = rows.Scan(&left, &right, &balance, &heat)
-			if err != nil {
-				log.Println(err)
-				redirect()
-				return
-			}
-			if left == winner {
-				balance = balance - 1
-			} else if right == winner {
-				balance = balance + 1
-			} else {
-				fmt.Println("sql query fucked up badly")
-				nrows = 0
-				break
-			}
-			heat = heat + 1
-			nrows = nrows + 1
-		}
-		if nrows == 0 {
-			query = `
-				INSERT INTO comparisons("left", "right", balance, heat)
-				VALUES ($1, $2, -1, $3);`
-			_, err = db.Exec(query, winner, loser, heat)
-		} else {
-			query = `
-				UPDATE comparisons
-				SET balance = $1, heat = $2
-				WHERE "left" = $3 AND "right" = $4;`
-			_, err = db.Exec(query, balance, heat, left, right)
-		}
-		if err != nil {
-			log.Println(err)
-			redirect()
-			return
-		}
 
 		redirect()
 		scheduler.FillRequest(tags, things.ID(winner), things.ID(loser))
