@@ -12,10 +12,11 @@
       <input type="hidden" name="tags" id="tags">
       <input type="hidden" name="winner" id="winner">
       <input type="hidden" name="loser" id="loser">
+      <input type="hidden" name="isTie" id="isTie">
     </form>
   </div>
   <div class="pure-u-lg-6-24 pure-u-sm-1">
-    <a onClick="submitVote({{.FirstId}}, {{.SecondId}});">
+    <a onClick="submitVote({{.FirstId}}, {{.SecondId}}, false);">
       {{.First}}
     </a>
   </div>
@@ -25,9 +26,16 @@
     </div>
   </div>
   <div class="pure-u-lg-6-24 pure-u-sm-1">
-    <a onClick="submitVote({{.SecondId}}, {{.FirstId}});">
+    <a onClick="submitVote({{.SecondId}}, {{.FirstId}}, false);">
       {{.Second}}
     </a>
+  </div>
+  <div class="pure-u-lg-13-24 pure-u-sm-1 pure-button">
+    <div class="pure-u-lg-4-24 pure-u-sm-3-24" />
+    <button class="pure-button pure-u-lg-5-24 pure-u-sm-7-24" onClick="submitVote({{.FirstId}}, {{.SecondId}}, true)">
+      It's a tie
+    </button>
+    <div class="pure-u-lg-4-24 pure-u-sm-3-24" />
   </div>
 </div>
 
@@ -39,7 +47,8 @@ for (i = 0; i < tagSels.length; i++) {
   tagSels[i].className = 'pure-u-1 rfvf-tag-selector-item-container';
 }
 
-function submitVote(winner, loser) {
+function submitVote(winner, loser, isTie) {
+  document.getElementById("isTie").value = isTie ? "yes" : "no";
   document.getElementById("winner").value = winner;
   document.getElementById("loser").value = loser;
 

@@ -157,6 +157,12 @@ func VoteHandler(db *sql.DB, scheduler *sched.Scheduler) func(http.ResponseWrite
 		winner, _ := strconv.Atoi(req.FormValue("winner"))
 		loser, _ := strconv.Atoi(req.FormValue("loser"))
 
+		if strings.Compare(req.FormValue("isTie"), "yes") == 0 {
+			scheduler.RemoveRequest(things.ID(winner), things.ID(loser))
+			redirect()
+			return
+		}
+
 		log.Printf("voting: winner = %d, loser = %d\n", winner, loser)
 
 		user := users.GetByAddr(db, req.RemoteAddr)

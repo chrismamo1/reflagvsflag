@@ -116,6 +116,13 @@ func (this *Scheduler) FillRequest(tags []string, winner things.ID, loser things
 	}
 }
 
+func (this *Scheduler) RemoveRequest(fst things.ID, snd things.ID) {
+	var ids things.IDPair
+	ids.Fst = fst
+	ids.Snd = snd
+	this.rmRequest(ids)
+}
+
 func (this *Scheduler) NextRequest(user users.User, tags []string) *things.IDPair {
 	if len(tags) < 1 {
 		tags = []string{"Modern"}
