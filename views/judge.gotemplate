@@ -30,12 +30,15 @@
       {{.Second}}
     </a>
   </div>
-  <div class="pure-u-lg-13-24 pure-u-sm-1 pure-button">
-    <div class="pure-u-lg-4-24 pure-u-sm-3-24" />
-    <button class="pure-button pure-u-lg-5-24 pure-u-sm-7-24" onClick="submitVote({{.FirstId}}, {{.SecondId}}, true)">
+  <div class="pure-u-lg-12-24 pure-u-sm-1">
+    <div class="pure-u-lg-8-24 pure-u-sm-7-24"></div>
+    <button
+      class="pure-button pure-button-secondary pure-u-lg-8-24 pure-u-sm-10-24"
+      onClick="submitVote({{.FirstId}}, {{.SecondId}}, true)"
+      >
       It's a tie
     </button>
-    <div class="pure-u-lg-4-24 pure-u-sm-3-24" />
+    <div class="pure-u-lg-8-24 pure-u-sm-7-24"></div>
   </div>
 </div>
 
