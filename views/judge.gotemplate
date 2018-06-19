@@ -15,22 +15,22 @@
       <input type="hidden" name="isTie" id="isTie">
     </form>
   </div>
-  <div class="pure-u-lg-6-24 pure-u-sm-1">
-    <a onClick="submitVote({{.FirstId}}, {{.SecondId}}, false);">
-      {{.First}}
-    </a>
-  </div>
-  <div class="pure-u-lg-1-24 pure-u-sm-1 hide-on-mobile" style="text-align: center; font-size: 1.675em">
-    <div style="padding-top: 50%">
-      - OR -
+  <div class="pure-u-lg-13-24 pure-u-sm-1">
+    <div class="pure-u-lg-11-24 pure-u-sm-1">
+      <a onClick="submitVote({{.FirstId}}, {{.SecondId}}, false);">
+        {{.First}}
+      </a>
     </div>
-  </div>
-  <div class="pure-u-lg-6-24 pure-u-sm-1">
-    <a onClick="submitVote({{.SecondId}}, {{.FirstId}}, false);">
-      {{.Second}}
-    </a>
-  </div>
-  <div class="pure-u-lg-12-24 pure-u-sm-1">
+    <div class="pure-u-lg-1-24 pure-u-sm-1 hide-on-mobile" style="text-align: center; font-size: 1.675em">
+      <div style="padding-top: 50%">
+        - OR -
+      </div>
+    </div>
+    <div class="pure-u-lg-11-24 pure-u-sm-1">
+      <a onClick="submitVote({{.SecondId}}, {{.FirstId}}, false);">
+        {{.Second}}
+      </a>
+    </div>
     <div class="pure-u-lg-8-24 pure-u-sm-7-24"></div>
     <button
       class="pure-button pure-button-secondary pure-u-lg-8-24 pure-u-sm-10-24"
