@@ -88,7 +88,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
 				format = `<div style="padding: 5px">` + deets1 + `
 						<figure>
                             <img
-                                style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                                style='width: 100%; max-height: 100%; filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.9))'
                                 src='{{.Path}}'>
                             </img>` + deets2 + `</figure></div>`
 			} else {
@@ -96,7 +96,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
 					<div style="padding: 5px">` + deets1 + `
 					<figure>
                             <img
-                                style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+                                style='width: 100%; max-height: 100%; filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.9))'
                                 src='{{.Path}}'>
                             </img>
                             ` + deets2 + `
@@ -114,7 +114,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
 	                    </center>
 	                    <figure>
 	                        <img
-	                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+	                            style='width: 100%; max-height: 100%; filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.9))'
 	                            src='{{.Path}}'>
 	                        </img>
 	                        <figcaption>{{.Desc}}</figcaption>
@@ -129,7 +129,7 @@ func render(thing Thing, root string, maxWidth int, maxHeight int, showElo bool,
 	                    </center>
 	                    <figure>
 	                        <img
-	                            style='width: 100%; max-height: 100%; box-shadow: 0px 0px 5px black'
+	                            style='width: 100%; max-height: 100%; filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.9))'
 	                            src='{{.Path}}'>
 	                        </img>
 	                        <figcaption>{{.Desc}}</figcaption>

@@ -31,14 +31,14 @@
         {{.Second}}
       </a>
     </div>
-    <div class="pure-u-lg-8-24 pure-u-sm-7-24"></div>
+    <div class="pure-u-lg-8-24 pure-u-sm-6-24"></div>
     <button
       class="pure-button pure-button-secondary pure-u-lg-8-24 pure-u-sm-10-24"
       onClick="submitVote({{.FirstId}}, {{.SecondId}}, true)"
       >
       It's a tie
     </button>
-    <div class="pure-u-lg-8-24 pure-u-sm-7-24"></div>
+    <div class="pure-u-lg-8-24 pure-u-sm-6-24"></div>
   </div>
 </div>
 
