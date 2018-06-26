@@ -458,7 +458,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 
 			statement := `
                 INSERT INTO images (path, name, img_index, heat, description)
-                VALUES ($1, $2, -1, (SELECT AVG(heat) FROM images), $3)
+                VALUES ($1, $2, -1, (SELECT MIN(heat) FROM images), $3)
             `
 			if _, err := db.Exec(statement, flagPath, flagName, flagDesc); err != nil {
 				log.Println("Error adding a flag: ", err)
