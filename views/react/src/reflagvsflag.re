@@ -19,6 +19,25 @@ module Cookies = {
       Some matches.(1)
     }
   };
+  let setCookie name value => {
+    let als = getCookie name;
+    let newWhole =
+      switch als {
+      | None => name ^ "=" ^ value ^ "; " ^ get_all_cookies dom
+      | Some _ =>
+          let all = "; " ^ get_all_cookies dom ^ ";";
+          let regex = Js.Re.fromString("^; (.+; )" ^ name ^ "=[^;]*;(.+)$");
+          let result = Js.Re.exec all regex;
+          switch result {
+          | None => name ^ "=" ^ value ^ "; " ^ get_all_cookies dom
+          | Some res =>
+            let matches = Js.Re.matches res;
+            name ^ "=" ^ value ^ "; " ^ matches.(1) ^ matches.(2)
+          }
+      };
+    Js.log2 "Setting cookie: " newWhole;
+    set_cookie dom newWhole
+  };
   let updateSelectedTags (tags: list Tags.tag) => {
     let cookie =
       switch tags {
@@ -26,7 +45,7 @@ module Cookies = {
       | [x] => x.name
       | [hd, ...tl] => List.fold_left (fun acc (tag: Tags.tag) => acc ^ "," ^ tag.name) hd.name tl
       };
-    set_cookie dom ("selected_tags=" ^ cookie)
+    setCookie "selected_tags" cookie
   };
   let getSelectedTags () => {
     let cookie = getCookie "selected_tags";
@@ -78,7 +97,23 @@ Js.log tags;
 
 let rfvfTagSelectorContainer = getById dom "rfvfTagSelector";
 
+module FingerprintJs2 = {
+  class type t =
+    [@@bs]
+    { pub get: (string => array(Js.t) => unit) => unit
+    };
+
+  [@@bs.module "fingerprintjs2"]
+  [@@bs.new]
+  external initFingerprint2 : unit => t = "Fingerprint2";
+};
+
 Js.log rfvfTagSelectorContainer;
 
 ReactDOMRe.render
   <TagSelector updateSelected=Cookies.updateSelectedTags tags /> rfvfTagSelectorContainer;
+
+let () = {
+  let fp = FingerprintJs2.initFingerprint2();
+  fp.get (fun print _ => Cookies.set_cookie "fingerprint" print)
+};
