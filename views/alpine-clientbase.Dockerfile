@@ -26,7 +26,7 @@ RUN apk add curl wget ruby ruby-bundler ruby-dev ruby-rdoc ruby-irb && \
 COPY ./react/package.json /home/views/react/package.json
 WORKDIR /home/views/react
 RUN npm install --save-dev bs-platform && \
-        npm install --only=dev
+        npm install
 
 RUN apk add groff less python py-pip && \
         rm -rf /var/cache/apk/* && \
