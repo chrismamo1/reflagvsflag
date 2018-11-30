@@ -97,7 +97,7 @@ Js.log tags;
 
 let rfvfTagSelectorContainer = getById dom "rfvfTagSelector";
 
-module FingerprintJs2 = {
+/*module FingerprintJs2 = {
   class type t =
     [@@bs]
     { pub get: (string => array(Js.t) => unit) => unit
@@ -106,7 +106,7 @@ module FingerprintJs2 = {
   [@@bs.module "fingerprintjs2"]
   [@@bs.new]
   external initFingerprint2 : unit => t = "Fingerprint2";
-};
+};*/
 
 Js.log rfvfTagSelectorContainer;
 
