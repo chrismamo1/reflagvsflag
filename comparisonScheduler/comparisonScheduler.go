@@ -90,8 +90,8 @@ func (this *Scheduler) FillRequest(tags []string, winner things.ID, loser things
 		if err := this.db.QueryRow(query, loser).Scan(&elo2); err != nil {
 			log.Fatal("Error getting 2nd elo in FillRequest: ", err)
 		}
-		r1 := math.Pow(10.0, elo1/400)
-		r2 := math.Pow(10.0, elo2/400)
+		r1 := math.Pow(2.0, elo1/400)
+		r2 := math.Pow(2.0, elo2/400)
 		e1 := r1 / (r1 + r2)
 		e2 := r2 / (r1 + r2)
 		s1 := 1.0
