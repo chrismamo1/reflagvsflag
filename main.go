@@ -425,8 +425,6 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 		}
 
 		if req.Method == "GET" {
-			users.GetByAddr(db, req.RemoteAddr)
-
 			tmplParams := struct {
 				ContentParams CParams
 				Style         string
@@ -437,6 +435,7 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 				log.Println("Error while executing template for upload: ", err)
 			}
 		} else {
+			user := users.GetByAddr(db, req.RemoteAddr)
 			log.Println("About to try to create a flag...")
 			req.ParseMultipartForm(2 * (1 << 20)) // max memory of 2 megs
 			file, header, err := req.FormFile("flag-path")
@@ -457,10 +456,10 @@ func UploadHandler(db *sql.DB) func(http.ResponseWriter, *http.Request, []string
 			log.Printf("Creating a flag with name \"%s\", path \"%s\", and tags %s\n", flagName, flagPath, rawTags)
 
 			statement := `
-                INSERT INTO images (path, name, img_index, heat, description)
-                VALUES ($1, $2, -1, (SELECT MIN(heat) FROM images), $3)
+                INSERT INTO images (path, name, img_index, heat, description, uploaded_by)
+                VALUES ($1, $2, -1, (SELECT MIN(heat) FROM images), $3, $4)
             `
-			if _, err := db.Exec(statement, flagPath, flagName, flagDesc); err != nil {
+			if _, err := db.Exec(statement, flagPath, flagName, flagDesc, user.Id); err != nil {
 				log.Println("Error adding a flag: ", err)
 				fail()
 				return
